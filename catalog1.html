@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panzz Add-on Minecraft</title>
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --text: #1a1a1a;
+            --text2: #666666;
+            --accent: #4CAF50;
+            --accent2: #2E7D32;
+            --border: #e0e0e0;
+            --radius: 14px;
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        .header {
+            background: var(--card);
+            padding: 16px 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .header h1 {
+            font-size: 20px;
+            color: var(--accent2);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .search-wrapper {
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .search-wrapper input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+            background: var(--bg);
+        }
+        .search-wrapper input:focus {
+            border-color: var(--accent);
+        }
+        .search-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            pointer-events: none;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        .result-count {
+            font-size: 12px;
+            color: var(--text2);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-decoration: none;
+            color: var(--text);
+            overflow: hidden;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:active {
+            transform: scale(0.97);
+        }
+        .card-img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            background: #e8f5e9;
+            display: block;
+        }
+        .card-body {
+            padding: 10px 12px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .card-desc {
+            font-size: 11px;
+            color: var(--text2);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .card-tag {
+            display: inline-block;
+            background: #e8f5e9;
+            color: var(--accent2);
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            align-self: flex-start;
+        }
+        .card-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            margin-top: auto;
+            transition: 0.2s;
+        }
+        .card-btn:active {
+            background: var(--accent2);
+        }
+        .no-result {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text2);
+            font-size: 16px;
+            grid-column: 1 / -1;
+        }
+        .no-result span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 11px;
+            margin-top: 40px;
+        }
+        @media (max-width: 380px) {
+            .grid { gap: 8px; }
+            .card-body { padding: 8px; }
+            .card-title { font-size: 12px; }
+            .card-btn { font-size: 11px; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Panzz Add-on Minecraft</h1>
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" placeholder="Cari add-on..." oninput="filterAddons()" />
+            <span class="search-icon">&#128269;</span>
+        </div>
+    </div>
+
+    <!-- GRID 2 KOLOM -->
+    <div class="container">
+        <p class="result-count" id="resultCount"></p>
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="footer">Made by Panzz</div>
+
+    <script>
+        // ============================================
+        // DATA ADD-ON — LO TINGGAL ISI DI SINI
+        // ============================================
+        const addons = [
+            {
+                name: "Action & Stuff",
+                image: "https://i.postimg.cc/GtBvNw0b/IMG-20260706-WA0103.jpg",
+                link: "https://www.mediafire.com/file/oufir21241u5xgv/Actions_and_Stuff_1.11_By_Panzz.mcpack/file",
+                desc: "Animasi player baru & tampilan item 3D",
+                tag: "Animasi"
+            },
+            {
+                name: "Better days played",
+                image: "https://i.postimg.cc/DZTDn6fz/bdp-jpg.jpg",
+                link: "https://www.mediafire.com/file/wp2w4201cm6mivr/Better_Days_Played_v1.2.3_By_Panzz.mcpack/file",
+                desc: "Membuat ui hari dan cordinat jadi lebih bagus",
+                tag: "Tampilan"
+            },
+            {
+                name: "Better Weapons 3D",
+                image: "https://i.postimg.cc/placeholder3.jpg",
+                link: "https://www.mediafire.com/file/xxxxx/Better-Weapons.mcaddon",
+                desc: "Senjata 3D dengan animasi keren",
+                tag: "Senjata"
+            },
+            {
+                name: "Realistic Shaders",
+                image: "https://i.postimg.cc/placeholder4.jpg",
+                link: "https://www.mediafire.com/file/xxxxx/Realistic-Shaders.mcpack",
+                desc: "Shader HD, bayangan & air realistis",
+                tag: "Shader"
+            },
+            {
+                name: "More Tools Addon",
+                image: "https://i.postimg.cc/placeholder5.jpg",
+                link: "https://www.mediafire.com/file/xxxxx/More-Tools.mcaddon",
+                desc: "50+ tools baru untuk mining & building",
+                tag: "Tools"
+            },
+            {
+                name: "Furniture Modern",
+                image: "https://i.postimg.cc/placeholder7.jpg",
+                link: "https://www.mediafire.com/file/xxxxx/Furniture-Modern.mcaddon",
+                desc: "Sofa, TV, meja untuk dekorasi rumah",
+                tag: "Dekorasi"
+            }
+        ];
+
+        // ============================================
+        // RENDER + FILTER
+        // ============================================
+        const grid = document.getElementById('grid');
+        const searchInput = document.getElementById('searchInput');
+        const resultCount = document.getElementById('resultCount');
+
+        function renderAddons(filter = '') {
+            const filtered = addons.filter(a => 
+                a.name.toLowerCase().includes(filter.toLowerCase()) ||
+                a.tag.toLowerCase().includes(filter.toLowerCase()) ||
+                a.desc.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            resultCount.textContent = filtered.length + ' add-on ditemukan';
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-result">
+                        <span>&#128123;</span>
+                        Add-on tidak ditemukan
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(a => `
+                <div class="card">
+                    <img class="card-img" src="${a.image}" alt="${a.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/320x180/4CAF50/white?text=${encodeURIComponent(a.name.substring(0,10))}'" />
+                    <div class="card-body">
+                        <div class="card-title">${a.name}</div>
+                        <span class="card-tag">${a.tag}</span>
+                        <div class="card-desc">${a.desc}</div>
+                        <a class="card-btn" href="${a.link}" target="_blank">Download</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterAddons() {
+            renderAddons(searchInput.value);
+        }
+
+        renderAddons();
+    </script>
+
+</body>
+</html>
