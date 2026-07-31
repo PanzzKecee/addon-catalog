@@ -66,6 +66,16 @@
 .card:nth-child(6) { animation-delay: 0.3s; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+#advSearchBtn {
+    display: flex !important;
+    justify-content: flex-start !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    position: relative;
+    left: 0;
+    width: fit-content;
+}
     </style>
 </head>
 <body>
@@ -90,7 +100,7 @@
     </select>
     <button onclick="toggleAdvancedSearch()" style="background:none;border:none;font-size:11px;color:var(--edit);cursor:pointer;margin-left:6px;">Tutup</button>
 </div>
-<button id="advSearchBtn" onclick="toggleAdvancedSearch()" style="background:none;border:none;cursor:pointer;padding:4px 8px;margin-top:4px;display:flex;align-items:center;gap:6px;">
+<button id="advSearchBtn" onclick="toggleAdvancedSearch()" style="background:none;border:none;cursor:pointer;padding:4px 8px;margin-top:4px;display:flex;align-items:center;gap:6px;margin-left:0;margin-right:auto !important;text-align:left;">
     <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;">
         <span style="display:block;width:18px;height:3px;background:var(--edit);border-radius:2px;"></span>
         <span style="display:block;width:12px;height:3px;background:var(--edit);border-radius:2px;"></span>
@@ -302,12 +312,20 @@ function openEditForm(i) {
             const el = Array.from(document.querySelectorAll('.nav-item')).find(e => e.textContent.includes(tab === 'all' ? 'All' : tab === 'recent' ? 'Terbaru' : tab === 'history' ? 'History' : tab === 'my' ? 'Addon Saya' : 'Profile'));
             if (el) el.classList.add('active');
             searchInput.value = '';
-            const searchWrapper = document.querySelector('.search-wrapper');
-            if (tab === 'profile') {
-                searchWrapper.style.display = 'none';
-            } else {
-                searchWrapper.style.display = 'block';
-            }
+            // Sembunyikan search bar & filter di tab Profile
+const searchWrapper = document.querySelector('.search-wrapper');
+const advSearchBtn = document.getElementById('advSearchBtn');
+const advancedSearch = document.getElementById('advancedSearch');
+
+if (tab === 'profile') {
+    searchWrapper.style.display = 'none';
+    advSearchBtn.style.display = 'none';
+    advancedSearch.style.display = 'none';
+} else {
+    searchWrapper.style.display = '';
+    advSearchBtn.style.display = '';
+    advancedSearch.style.display = '';
+}
 
             if (tab === 'history') {
                 const h = getHistory(), sh = getSearchHistory();
@@ -452,6 +470,7 @@ function openEditForm(i) {
             switchTab(currentTab);
         }
         updateUI();
+        document.getElementById('advancedSearch').style.display = 'none';
     </script>
 </body>
 </html>
