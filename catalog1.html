@@ -116,7 +116,7 @@
         }
         try { const s = localStorage.getItem('panzz_saved_simple'); if (s) savedAddons = JSON.parse(s); } catch(e) {}
         const users = JSON.parse(localStorage.getItem('panzz_users_simple') || '{}');
-        currentUser = JSON.parse(sessionStorage.getItem('panzz_user_simple') || 'null');
+        currentUser = JSON.parse(localStorage.getItem('panzz_user_simple') || 'null');
         const isLoggedIn = !!currentUser;
         function isAdmin() { return currentUser && ADMIN_PASSWORDS.includes(currentUser.pass); }
         function isCreator() { return currentUser && currentUser.username === CREATOR_USERNAME && currentUser.pass === CREATOR_PASSWORD; }
@@ -157,10 +157,10 @@
             }
             if (!users[u] || users[u].pass !== p) { alert('Username atau password salah!'); return; }
             currentUser = { username: u, pass: p };
-            sessionStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
+            localStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
             closeModal('authModal'); updateUI();
         }
-        function logout() { currentUser = null; sessionStorage.removeItem('panzz_user_simple'); updateUI(); }
+        function logout() { currentUser = null; localStorage.removeItem('panzz_user_simple'); updateUI(); }
         function addAddon() {
             const name = document.getElementById('addName').value.trim(), imgFile = document.getElementById('addImage').files[0];
             const link1 = document.getElementById('addLink1').value.trim(), link2 = document.getElementById('addLink2').value.trim();
@@ -267,7 +267,7 @@
             localStorage.setItem('panzz_users_simple', JSON.stringify(users));
             localStorage.setItem('panzz_username_change_'+newUser, Date.now().toString());
             currentUser.username = newUser;
-            sessionStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
+            localStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
             alert('Username diganti!'); updateUI();
         }
         function changePassword() {
@@ -282,7 +282,7 @@
             users[currentUser.username].pass = n;
             localStorage.setItem('panzz_users_simple', JSON.stringify(users));
             currentUser.pass = n;
-            sessionStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
+            localStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
             ['editOldPass','editNewPass','editConfirmPass'].forEach(id => document.getElementById(id).value = '');
             alert('Password diganti!'); updateUI();
         }
@@ -299,7 +299,7 @@
             savedAddons = savedAddons.filter(a => a.savedBy !== currentUser.username);
             localStorage.setItem('panzz_saved_simple', JSON.stringify(savedAddons));
             currentUser = null;
-            sessionStorage.removeItem('panzz_user_simple');
+            localStorage.removeItem('panzz_user_simple');
             alert('Akun berhasil dihapus.');
             updateUI();
         }
