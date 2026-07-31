@@ -6,294 +6,314 @@
     <title>Panzz Add-on Minecraft</title>
     <style>
         :root {
-            --bg: #f5f5f5;
-            --card: #ffffff;
-            --text: #1a1a1a;
-            --text2: #666666;
-            --accent: #4CAF50;
-            --accent2: #2E7D32;
-            --border: #e0e0e0;
-            --radius: 14px;
-            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --bg: #f5f5f5; --card: #ffffff; --text: #1a1a1a; --text2: #666666;
+            --accent: #4CAF50; --accent2: #2E7D32; --edit: #2196F3; --delete: #f44336;
+            --save: #FF9800; --border: #e0e0e0; --radius: 14px; --shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding-bottom: 40px;
-        }
-        .header {
-            background: var(--card);
-            padding: 16px 20px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .header h1 {
-            font-size: 20px;
-            color: var(--accent2);
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        .search-wrapper {
-            max-width: 450px;
-            margin: 0 auto;
-            position: relative;
-        }
-        .search-wrapper input {
-            width: 100%;
-            padding: 12px 18px;
-            border: 2px solid var(--border);
-            border-radius: 25px;
-            font-size: 14px;
-            outline: none;
-            transition: 0.3s;
-            background: var(--bg);
-        }
-        .search-wrapper input:focus {
-            border-color: var(--accent);
-        }
-        .search-icon {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-            pointer-events: none;
-        }
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-        .result-count {
-            font-size: 12px;
-            color: var(--text2);
-            margin-bottom: 12px;
-            text-align: center;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            text-decoration: none;
-            color: var(--text);
-            overflow: hidden;
-            transition: 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:active {
-            transform: scale(0.97);
-        }
-        .card-img {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            object-fit: cover;
-            background: #e8f5e9;
-            display: block;
-        }
-        .card-body {
-            padding: 10px 12px 12px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .card-title {
-            font-size: 13px;
-            font-weight: 700;
-            line-height: 1.3;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .card-desc {
-            font-size: 11px;
-            color: var(--text2);
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .card-tag {
-            display: inline-block;
-            background: #e8f5e9;
-            color: var(--accent2);
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            align-self: flex-start;
-        }
-        .card-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            margin-top: auto;
-            transition: 0.2s;
-        }
-        .card-btn:active {
-            background: var(--accent2);
-        }
-        .no-result {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text2);
-            font-size: 16px;
-            grid-column: 1 / -1;
-        }
-        .no-result span {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 10px;
-        }
-        .footer {
-            text-align: center;
-            color: #999;
-            font-size: 11px;
-            margin-top: 40px;
-        }
-        @media (max-width: 380px) {
-            .grid { gap: 8px; }
-            .card-body { padding: 8px; }
-            .card-title { font-size: 12px; }
-            .card-btn { font-size: 11px; padding: 8px; }
-        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 70px; }
+        .header { background: var(--card); padding: 14px 20px; text-align: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 10; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .header h1 { font-size: 20px; color: var(--accent2); font-weight: 700; }
+        .auth-btns { display: flex; gap: 6px; align-items: center; }
+        .auth-btn { padding: 6px 14px; border-radius: 20px; font-size: 11px; cursor: pointer; border: none; color: white; font-weight: 600; background: var(--accent); }
+        .auth-btn.signup { background: var(--edit); }
+        .search-wrapper { max-width: 450px; margin: 0 auto; position: relative; }
+        .search-wrapper input { width: 100%; padding: 12px 18px; border: 2px solid var(--border); border-radius: 25px; font-size: 14px; outline: none; background: var(--bg); }
+        .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        .card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #e8f5e9; }
+        .card-body { padding: 10px 12px 12px; }
+        .card-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .card-desc { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+        .card-tag { display: inline-block; background: #e8f5e9; color: var(--accent2); font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-bottom: 6px; }
+        .card-btn { display: block; width: 100%; padding: 10px; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; margin-top: 4px; }
+        .card-btn.dl { background: var(--accent); }
+        .card-count { font-size: 10px; color: var(--text2); text-align: center; margin-top: 4px; }
+        .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); display: flex; justify-content: space-around; padding: 10px 0 12px; box-shadow: 0 -2px 8px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-item { font-size: 10px; color: var(--text2); display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+        .nav-item.active { color: var(--accent2); font-weight: 700; }
+        .nav-item span { font-size: 20px; pointer-events: none; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: white; padding: 20px; border-radius: var(--radius); width: 90%; max-width: 380px; }
+        .modal-box h3 { margin-bottom: 10px; font-size: 16px; }
+        .modal-box input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+        .modal-box button { width: 100%; padding: 10px; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 5px; }
+        .btn-green { background: var(--accent); }
+        .btn-gray { background: #ccc; color: #333; }
+        .no-result { text-align: center; padding: 60px 20px; color: var(--text2); grid-column: 1/-1; }
+        .history-list { list-style: none; padding: 0; }
+        .history-list li { background: var(--card); padding: 10px; border-radius: 8px; margin-bottom: 6px; font-size: 12px; display: flex; justify-content: space-between; box-shadow: var(--shadow); }
+        .profile-edit-section { background: var(--card); border-radius: var(--radius); padding: 16px; margin-top: 10px; text-align: left; }
+        .profile-edit-section h4 { margin-bottom: 8px; }
+        .profile-edit-section input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+        .profile-edit-section button { width: 100%; padding: 10px; color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 4px; }
+        .profile-pic { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 3px solid #000000; margin: 0 auto 10px; display: block; background: #e8f5e9; }
+        .profile-pic-small { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #000000; margin-right: 4px; vertical-align: middle; background: #e8f5e9; }
+        .edit-pic-btn { display: inline-block; margin-top: -30px; margin-left: 40px; background: var(--edit); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; line-height: 28px; text-align: center; cursor: pointer; border: 2px solid white; position: relative; }
+        .hidden-file-input { display: none; }
     </style>
 </head>
 <body>
-
-    <!-- HEADER -->
     <div class="header">
-        <h1>Panzz Add-on Minecraft</h1>
+        <div class="header-top">
+            <h1>Panzz Add-on</h1>
+            <div id="authBtns">
+                <button class="auth-btn" onclick="openModal('signin')">Sign In</button>
+                <button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>
+            </div>
+        </div>
         <div class="search-wrapper">
-            <input type="text" id="searchInput" placeholder="Cari add-on..." oninput="filterAddons()" />
-            <span class="search-icon">&#128269;</span>
+            <input type="text" id="searchInput" placeholder="Cari add-on..." onkeydown="if(event.key==='Enter')searchAddons()" />
         </div>
     </div>
-
-    <!-- GRID 2 KOLOM -->
     <div class="container">
-        <p class="result-count" id="resultCount"></p>
         <div class="grid" id="grid"></div>
     </div>
-
-    <div class="footer">Made by Panzz</div>
-
+    <div class="navbar">
+        <div class="nav-item active" onclick="switchTab('all')"><span>🏠</span>All</div>
+        <div class="nav-item" onclick="switchTab('recent')"><span>🕒</span>Terbaru</div>
+        <div class="nav-item" onclick="switchTab('history')"><span>📋</span>History</div>
+        <div class="nav-item" onclick="switchTab('my')"><span>📦</span>Addon Saya</div>
+        <div class="nav-item" onclick="switchTab('profile')"><span>👤</span>Profile</div>
+    </div>
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <h3 id="authTitle">Sign In</h3>
+            <input type="text" id="authUser" placeholder="Username" />
+            <input type="password" id="authPass" placeholder="Password" />
+            <button class="btn-green" id="authActionBtn" onclick="handleAuth()">Sign In</button>
+            <button class="btn-gray" id="authToggleBtn" onclick="toggleAuthMode()">Belum punya akun? Sign Up</button>
+            <button class="btn-gray" onclick="closeModal('authModal')">Tutup</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-box">
+            <h3>Tambah Add-on</h3>
+            <input type="text" id="addName" placeholder="Nama Add-on" />
+            <input type="file" id="addImage" accept="image/*" /><small>Thumbnail</small>
+            <input type="text" id="addLink1" placeholder="Link Download (MediaFire)" />
+            <input type="text" id="addLink2" placeholder="Link Download 2 (opsional)" />
+            <textarea id="addDesc" placeholder="Deskripsi" rows="2" style="width:100%;margin:6px 0;border:1px solid #ddd;border-radius:8px;padding:8px;"></textarea>
+            <input type="text" id="addTag" placeholder="Tag" />
+            <button class="btn-green" onclick="addAddon()">Tambah</button>
+            <button class="btn-gray" onclick="closeModal('addModal')">Batal</button>
+        </div>
+    </div>
     <script>
-        // ============================================
-        // DATA ADD-ON — LO TINGGAL ISI DI SINI
-        // ============================================
-        const addons = [
-            {
-                name: "Action & Stuff",
-                image: "https://i.postimg.cc/GtBvNw0b/IMG-20260706-WA0103.jpg",
-                link: "https://www.mediafire.com/file/oufir21241u5xgv/Actions_and_Stuff_1.11_By_Panzz.mcpack/file",
-                desc: "Animasi player baru & tampilan item 3D",
-                tag: "Animasi"
-            },
-            {
-                name: "Better days played",
-                image: "https://via.placeholder.com/320x240/4CAF50/white?text=Test",
-                link: "https://www.mediafire.com/file/wp2w4201cm6mivr/Better_Days_Played_v1.2.3_By_Panzz.mcpack/file",
-                desc: "Membuat ui hari dan cordinat jadi lebih bagus",
-                tag: "Tampilan"
-            },
-            {
-                name: "Better Weapons 3D",
-                image: "https://i.postimg.cc/placeholder3.jpg",
-                link: "https://www.mediafire.com/file/xxxxx/Better-Weapons.mcaddon",
-                desc: "Senjata 3D dengan animasi keren",
-                tag: "Senjata"
-            },
-            {
-                name: "Realistic Shaders",
-                image: "https://i.postimg.cc/placeholder4.jpg",
-                link: "https://www.mediafire.com/file/xxxxx/Realistic-Shaders.mcpack",
-                desc: "Shader HD, bayangan & air realistis",
-                tag: "Shader"
-            },
-            {
-                name: "More Tools Addon",
-                image: "https://i.postimg.cc/placeholder5.jpg",
-                link: "https://www.mediafire.com/file/xxxxx/More-Tools.mcaddon",
-                desc: "50+ tools baru untuk mining & building",
-                tag: "Tools"
-            },
-            {
-                name: "Furniture Modern",
-                image: "https://i.postimg.cc/placeholder7.jpg",
-                link: "https://www.mediafire.com/file/xxxxx/Furniture-Modern.mcaddon",
-                desc: "Sofa, TV, meja untuk dekorasi rumah",
-                tag: "Dekorasi"
+        const CREATOR_USERNAME = "PanzzKeceeAbis", CREATOR_PASSWORD = "Panzz28072012";
+        const ADMIN_PASSWORDS = ["UserAdmin123/--_", CREATOR_PASSWORD];
+        let addons = [], savedAddons = [], currentTab = 'all', authMode = 'signin', currentUser = null;
+        try { const s = localStorage.getItem('panzz_simple'); if (s) addons = JSON.parse(s); } catch(e) {}
+        if (!addons.length) {
+            addons = [
+                { name: "Action & Stuff", image: "https://i.postimg.cc/GtBvNw0b/IMG-20260706-WA0103.jpg", links: ["https://www.mediafire.com/file/oufir21241u5xgv/Actions_and_Stuff_1.11_By_Panzz.mcpack/file"], desc: "Animasi player baru", tag: "Animasi", author: "admin", date: Date.now() },
+                { name: "More Trees", image: "https://i.postimg.cc/sxF9Mj8K/IMG-20260730-WA0053.jpg", links: ["https://www.mediafire.com/file/rjg3aauezana7gg/More_Trees_By_Panzz.mcaddon/file"], desc: "Tambahan pohon", tag: "Addon", author: "admin", date: Date.now() }
+            ];
+            localStorage.setItem('panzz_simple', JSON.stringify(addons));
+        }
+        try { const s = localStorage.getItem('panzz_saved_simple'); if (s) savedAddons = JSON.parse(s); } catch(e) {}
+        const users = JSON.parse(localStorage.getItem('panzz_users_simple') || '{}');
+        currentUser = JSON.parse(sessionStorage.getItem('panzz_user_simple') || 'null');
+        const isLoggedIn = !!currentUser;
+        function isAdmin() { return currentUser && ADMIN_PASSWORDS.includes(currentUser.pass); }
+        function isCreator() { return currentUser && currentUser.username === CREATOR_USERNAME && currentUser.pass === CREATOR_PASSWORD; }
+        function getTitle() { if (isCreator()) return 'Creator'; if (isAdmin()) return 'Admin'; return 'User'; }
+        function getHistory() { try { return JSON.parse(localStorage.getItem('panzz_hist_simple') || '[]'); } catch(e) { return []; } }
+        function addHistory(action, detail) { const h = getHistory(); h.unshift({ action, detail, time: new Date().toLocaleString() }); if (h.length > 50) h.pop(); localStorage.setItem('panzz_hist_simple', JSON.stringify(h)); }
+        function getSearchHistory() { try { return JSON.parse(localStorage.getItem('panzz_search_hist') || '[]'); } catch(e) { return []; } }
+        function addSearchHistory(q) { if (!q || q.trim() === '') return; const h = getSearchHistory(); h.unshift({ query: q.trim(), time: new Date().toLocaleString() }); if (h.length > 30) h.pop(); localStorage.setItem('panzz_search_hist', JSON.stringify(h)); }
+        function openModal(type) {
+            if (type === 'signin' || type === 'signup') {
+                authMode = type;
+                document.getElementById('authTitle').textContent = type === 'signin' ? 'Sign In' : 'Sign Up';
+                document.getElementById('authActionBtn').textContent = type === 'signin' ? 'Sign In' : 'Sign Up';
+                document.getElementById('authToggleBtn').textContent = type === 'signin' ? 'Belum punya akun? Sign Up' : 'Sudah punya akun? Sign In';
+                document.getElementById('authModal').classList.add('show');
+            } else if (type === 'add') {
+                if (!isAdmin()) { alert('Hanya admin/creator!'); return; }
+                ['addName','addImage','addLink1','addLink2','addDesc','addTag'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('addModal').classList.add('show');
             }
-        ];
-
-        // ============================================
-        // RENDER + FILTER
-        // ============================================
-        const grid = document.getElementById('grid');
-        const searchInput = document.getElementById('searchInput');
-        const resultCount = document.getElementById('resultCount');
-
-        function renderAddons(filter = '') {
-            const filtered = addons.filter(a => 
-                a.name.toLowerCase().includes(filter.toLowerCase()) ||
-                a.tag.toLowerCase().includes(filter.toLowerCase()) ||
-                a.desc.toLowerCase().includes(filter.toLowerCase())
-            );
-
-            resultCount.textContent = filtered.length + ' add-on ditemukan';
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `
-                    <div class="no-result">
-                        <span>&#128123;</span>
-                        Add-on tidak ditemukan
-                    </div>
-                `;
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        function toggleAuthMode() {
+            authMode = authMode === 'signin' ? 'signup' : 'signin';
+            document.getElementById('authTitle').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+            document.getElementById('authActionBtn').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+            document.getElementById('authToggleBtn').textContent = authMode === 'signin' ? 'Belum punya akun? Sign Up' : 'Sudah punya akun? Sign In';
+        }
+        function handleAuth() {
+            const u = document.getElementById('authUser').value.trim(), p = document.getElementById('authPass').value.trim();
+            if (!u || !p) { alert('Isi semua!'); return; }
+            if (authMode === 'signup') {
+                if (users[u]) { alert('Username sudah dipakai!'); return; }
+                users[u] = { pass: p };
+                localStorage.setItem('panzz_users_simple', JSON.stringify(users));
+                alert('Akun dibuat! Silakan Sign In.');
+                toggleAuthMode(); return;
+            }
+            if (!users[u] || users[u].pass !== p) { alert('Username atau password salah!'); return; }
+            currentUser = { username: u, pass: p };
+            sessionStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
+            closeModal('authModal'); updateUI();
+        }
+        function logout() { currentUser = null; sessionStorage.removeItem('panzz_user_simple'); updateUI(); }
+        function addAddon() {
+            const name = document.getElementById('addName').value.trim(), imgFile = document.getElementById('addImage').files[0];
+            const link1 = document.getElementById('addLink1').value.trim(), link2 = document.getElementById('addLink2').value.trim();
+            const desc = document.getElementById('addDesc').value.trim(), tag = document.getElementById('addTag').value.trim();
+            if (!name || !link1) return alert('Nama & Link wajib!');
+            function simpan(img) {
+                const links = [link1]; if (link2) links.push(link2);
+                addons.unshift({ name, image: img || '', links, desc, tag, author: currentUser.username, date: Date.now() });
+                localStorage.setItem('panzz_simple', JSON.stringify(addons));
+                closeModal('addModal'); switchTab('my'); addHistory('Tambah Add-on', name);
+            }
+            if (imgFile) { const r = new FileReader(); r.onload = e => simpan(e.target.result); r.readAsDataURL(imgFile); }
+            else { simpan(''); }
+        }
+        function saveAddon(i) {
+            if (!isLoggedIn) { alert('Login dulu!'); return; }
+            const a = addons[i];
+            if (savedAddons.find(s => s.name === a.name && s.links[0] === a.links[0])) { alert('Sudah disimpan!'); return; }
+            savedAddons.unshift({ ...a, savedBy: currentUser.username, savedDate: Date.now() });
+            localStorage.setItem('panzz_saved_simple', JSON.stringify(savedAddons));
+            alert('Tersimpan!'); switchTab(currentTab); addHistory('Simpan Add-on', a.name);
+        }
+        function removeSaved(i) { savedAddons.splice(i,1); localStorage.setItem('panzz_saved_simple', JSON.stringify(savedAddons)); switchTab('my'); }
+        function downloadAddon(link, name) { addHistory('Download', name); window.open(link, '_blank'); }
+        const grid = document.getElementById('grid'), searchInput = document.getElementById('searchInput');
+        function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHistory(q); renderGrid(); }
+        function renderGrid() {
+            grid.innerHTML = '';
+            const f = searchInput.value.toLowerCase();
+            let list = [...addons];
+            if (currentTab === 'recent') list = list.slice(0,5);
+            if (currentTab === 'my') {
+                if (!isLoggedIn) { grid.innerHTML = '<div class="no-result">Login dulu.</div>'; return; }
+                if (isAdmin()) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;margin-bottom:12px;"><button class="card-btn dl" style="background:#FF9800;" onclick="openModal(\'add\')">+ Tambah Add-on</button></div>'; }
+                list = isAdmin() ? addons.filter(a => a.author === currentUser.username) : savedAddons.filter(a => a.savedBy === currentUser.username);
+            }
+            if (f) list = list.filter(a => a.name.toLowerCase().includes(f) || (a.tag||'').toLowerCase().includes(f));
+            if (!list.length) { grid.innerHTML += '<div class="no-result">Kosong</div>'; return; }
+            grid.innerHTML += list.map((a,i) => {
+                const idx = addons.indexOf(a);
+                const links = (a.links||[]).map(l => `<button class="card-btn dl" onclick="downloadAddon('${l}','${a.name}')">📥 Download</button>`).join('');
+                const saveBtn = (!isAdmin() && isLoggedIn && currentTab !== 'my') ? `<button class="card-btn dl" style="background:#FF9800;" onclick="saveAddon(${idx})">💾 Simpan</button>` : '';
+                const removeBtn = (!isAdmin() && currentTab === 'my') ? `<button class="card-btn dl" style="background:#f44336;" onclick="removeSaved(${i})">Hapus</button>` : '';
+                const adminBtns = (isAdmin() && currentTab === 'my') ? `<button class="card-btn dl" style="background:#2196F3;" onclick="alert('Edit')">Edit</button><button class="card-btn dl" style="background:#f44336;" onclick="addons.splice(${idx},1);localStorage.setItem('panzz_simple',JSON.stringify(addons));switchTab('my')">Hapus</button>` : '';
+                return `<div class="card">${a.image?`<img class="card-img" src="${a.image}" />`:''}<div class="card-body"><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||''}</span><div class="card-desc">${a.desc||''}</div>${links}${saveBtn}${removeBtn}${adminBtns}</div></div>`;
+            }).join('');
+        }
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            const el = Array.from(document.querySelectorAll('.nav-item')).find(e => e.textContent.includes(tab === 'all' ? 'All' : tab === 'recent' ? 'Terbaru' : tab === 'history' ? 'History' : tab === 'my' ? 'Addon Saya' : 'Profile'));
+            if (el) el.classList.add('active');
+            searchInput.value = '';
+            if (tab === 'history') {
+                const h = getHistory(), sh = getSearchHistory();
+                grid.innerHTML = `<div style="grid-column:1/-1;"><h4>📥 Download</h4><ul class="history-list">${h.length===0?'<li>Kosong</li>':h.slice(0,20).map(x=>`<li><span>${x.action}: ${x.detail}</span><span style="font-size:10px;">${x.time}</span></li>`).join('')}</ul><h4 style="margin-top:16px;">🔍 Pencarian</h4><ul class="history-list">${sh.length===0?'<li>Kosong</li>':sh.slice(0,20).map(x=>`<li><span>${x.query}</span><span style="font-size:10px;">${x.time}</span></li>`).join('')}</ul></div>`;
                 return;
             }
-
-            grid.innerHTML = filtered.map(a => `
-                <div class="card">
-                    <img class="card-img" src="${a.image}" alt="${a.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/320x180/4CAF50/white?text=${encodeURIComponent(a.name.substring(0,10))}'" />
-                    <div class="card-body">
-                        <div class="card-title">${a.name}</div>
-                        <span class="card-tag">${a.tag}</span>
-                        <div class="card-desc">${a.desc}</div>
-                        <a class="card-btn" href="${a.link}" target="_blank">Download</a>
+            if (tab === 'profile') {
+                const savedPic = localStorage.getItem('panzz_pic_' + (currentUser?.username || ''));
+                const picSrc = savedPic || 'https://via.placeholder.com/80/4CAF50/white?text=👤';
+                let p = `<div class="no-result" style="grid-column:1/-1;">
+                    <div style="position:relative;display:inline-block;">
+                        <img src="${picSrc}" class="profile-pic" id="profilePicPreview" style="width:100px;height:100px;" />
                     </div>
-                </div>
-            `).join('');
+                    <h3 style="margin-top:12px;">${currentUser?.username||'Guest'}</h3>
+                    <p>${getTitle()}</p>`;
+                if (isLoggedIn) {
+                    p += `<p><button class="card-btn dl" onclick="openModal('add')">+ Tambah Add-on</button></p>`;
+                    p += `<div style="grid-column:1/-1;margin-top:16px;text-align:left;"><button class="card-btn dl" style="background:var(--edit);" onclick="toggleEditProfile()">✏️ Edit Profile</button><div id="editProfileSection" style="display:none;background:var(--card);border-radius:var(--radius);padding:16px;margin-top:10px;"><h4>✏️ Edit Profile</h4><p style="font-size:11px;color:var(--text2);">Ganti Foto Profil</p><input type="file" id="profilePicInput" accept="image/*" onchange="updateProfilePic()" /><p style="font-size:11px;color:var(--text2);margin-top:12px;">🔄 Ganti Username (1x/24 jam)</p><input type="text" id="editUsername" placeholder="Username baru" /><button class="card-btn dl" style="background:#2196F3;" onclick="changeUsername()">Ganti Username</button><p style="font-size:11px;color:var(--text2);margin-top:12px;">🔐 Ganti Password</p><input type="password" id="editOldPass" placeholder="Password lama" /><input type="password" id="editNewPass" placeholder="Password baru" /><input type="password" id="editConfirmPass" placeholder="Konfirmasi password baru" /><button class="card-btn dl" style="background:#FF9800;" onclick="changePassword()">Ganti Password</button></div></div>`;
+                    p += `<div style="grid-column:1/-1;margin-top:12px;text-align:left;"><button class="card-btn dl" style="background:var(--delete);" onclick="toggleDeleteAccount()">🗑️ Delete Account</button><div id="deleteAccountSection" style="display:none;background:var(--card);border-radius:var(--radius);padding:16px;margin-top:10px;"><h4>🗑️ Hapus Akun</h4><p style="font-size:11px;color:var(--delete);">Tindakan ini permanen. Semua data add-on kamu akan hilang.</p><input type="password" id="deletePass" placeholder="Konfirmasi password" /><button class="card-btn dl" style="background:var(--delete);" onclick="deleteAccount()">Hapus Akun Saya</button></div></div>`;
+                    p += `<p style="margin-top:12px;"><button class="card-btn dl" style="background:#f44336;" onclick="logout()">Logout</button></p>`;
+                } else {
+                    p += `<p><button class="card-btn dl" onclick="openModal('signin')">Sign In</button></p>`;
+                    p += `<p><button class="card-btn dl" style="background:#2196F3;" onclick="openModal('signup')">Sign Up</button></p>`;
+                }
+                p += `</div>`; grid.innerHTML = p; return;
+            }
+            renderGrid();
         }
-
-        function filterAddons() {
-            renderAddons(searchInput.value);
+        function toggleEditProfile() { const s = document.getElementById('editProfileSection'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
+        function toggleDeleteAccount() { const s = document.getElementById('deleteAccountSection'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
+        function updateProfilePic() {
+            if (!isLoggedIn) return;
+            const file = document.getElementById('profilePicInput').files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                localStorage.setItem('panzz_pic_' + currentUser.username, e.target.result);
+                document.getElementById('profilePicPreview').src = e.target.result;
+                updateUI();
+            };
+            reader.readAsDataURL(file);
         }
-
-        renderAddons();
+        function changeUsername() {
+            if (!isLoggedIn) return;
+            const newUser = document.getElementById('editUsername').value.trim();
+            if (!newUser) { alert('Masukkan username baru!'); return; }
+            if (users[newUser]) { alert('Username sudah dipakai!'); return; }
+            const last = parseInt(localStorage.getItem('panzz_username_change_'+currentUser.username)||'0');
+            if (Date.now()-last < 86400000) { alert('1x/24 jam!'); return; }
+            users[newUser] = { pass: currentUser.pass };
+            delete users[currentUser.username];
+            localStorage.setItem('panzz_users_simple', JSON.stringify(users));
+            localStorage.setItem('panzz_username_change_'+newUser, Date.now().toString());
+            currentUser.username = newUser;
+            sessionStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
+            alert('Username diganti!'); updateUI();
+        }
+        function changePassword() {
+            if (!isLoggedIn) return;
+            const old = document.getElementById('editOldPass').value.trim();
+            const n = document.getElementById('editNewPass').value.trim();
+            const c = document.getElementById('editConfirmPass').value.trim();
+            if (!old||!n||!c) { alert('Isi semua!'); return; }
+            if (old !== currentUser.pass) { alert('Password lama salah!'); return; }
+            if (n !== c) { alert('Password baru & konfirmasi tidak cocok!'); return; }
+            if (n === old) { alert('Tidak boleh sama!'); return; }
+            users[currentUser.username].pass = n;
+            localStorage.setItem('panzz_users_simple', JSON.stringify(users));
+            currentUser.pass = n;
+            sessionStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
+            ['editOldPass','editNewPass','editConfirmPass'].forEach(id => document.getElementById(id).value = '');
+            alert('Password diganti!'); updateUI();
+        }
+        function deleteAccount() {
+            if (!isLoggedIn) return;
+            const pass = document.getElementById('deletePass').value.trim();
+            if (!pass) { alert('Masukkan password untuk konfirmasi!'); return; }
+            if (pass !== currentUser.pass) { alert('Password salah!'); return; }
+            if (!confirm('Yakin hapus akun? SEMUA DATA AKAN HILANG!')) return;
+            delete users[currentUser.username];
+            localStorage.setItem('panzz_users_simple', JSON.stringify(users));
+            addons = addons.filter(a => a.author !== currentUser.username);
+            localStorage.setItem('panzz_simple', JSON.stringify(addons));
+            savedAddons = savedAddons.filter(a => a.savedBy !== currentUser.username);
+            localStorage.setItem('panzz_saved_simple', JSON.stringify(savedAddons));
+            currentUser = null;
+            sessionStorage.removeItem('panzz_user_simple');
+            alert('Akun berhasil dihapus.');
+            updateUI();
+        }
+        function updateUI() {
+            if (isLoggedIn) {
+                const savedPic = localStorage.getItem('panzz_pic_' + currentUser.username);
+                const picHTML = savedPic ? `<img src="${savedPic}" class="profile-pic-small" style="margin-left:8px;margin-right:0;" />` : '';
+                document.getElementById('authBtns').innerHTML = `<span style="font-size:12px;font-weight:600;">${getTitle()==='Creator'?'👑':isAdmin()?'🛡️':''} ${currentUser.username}</span>${picHTML}`;
+            } else {
+                document.getElementById('authBtns').innerHTML = `<button class="auth-btn" onclick="openModal('signin')">Sign In</button><button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>`;
+            }
+            switchTab(currentTab);
+        }
+        updateUI();
     </script>
-
 </body>
 </html>
