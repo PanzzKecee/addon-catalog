@@ -151,15 +151,15 @@
     let users = {}, historyList = [], downloadCounts = {};
     currentUser = JSON.parse(localStorage.getItem('panzz_user_simple') || 'null');
 
-    db.ref('addons').on('value', s => {
+    db.ref('addons').on('value', s => { 
     if (s.exists()) {
         const data = s.val();
-        // Ubah dari object ke array
-        addons = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        // Data udah array, langsung pakai
+        addons = Array.isArray(data) ? data : Object.values(data);
     } else {
         addons = [];
     }
-    if (currentTab !== 'profile' && currentTab !== 'history') renderGrid();
+    renderGrid();
 });
 
     setTimeout(() => {
