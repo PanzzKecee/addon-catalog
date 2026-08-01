@@ -15,7 +15,16 @@
         .header { background: var(--card); padding: 14px 20px; text-align: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 10; }
         .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         .header h1 { font-size: 20px; color: var(--accent2); font-weight: 700; }
-        .auth-btns { display: flex; gap: 6px; align-items: center; }
+      setTimeout(()  .auth-btns { display: flex; gap: 6px; align-items: center; }
+=> {
+        if (addons.length === 0) {
+            addons = [
+                { name: "Action & Stuff", image: "https://i.postimg.cc/GtBvNw0b/IMG-20260706-WA0103.jpg", links: ["https://www.mediafire.com/file/oufir21241u5xgv/Actions_and_Stuff_1.11_By_Panzz.mcpack/file"], desc: "Animasi player baru", tag: "Add-on", author: "PanzzKeceeAbis", date: Date.now() },
+                { name: "More Trees", image: "https://i.postimg.cc/sxF9Mj8K/IMG-20260730-WA0053.jpg", links: ["https://www.mediafire.com/file/rjg3aauezana7gg/More_Trees_By_Panzz.mcaddon/file"], desc: "Tambahan pohon", tag: "Add-on", author: "PanzzKeceeAbis", date: Date.now() }
+            ];
+            db.ref('addons').set(addons);
+        }
+    }, 3000);
         .auth-btn { padding: 6px 14px; border-radius: 20px; font-size: 11px; cursor: pointer; border: none; color: white; font-weight: 600; background: var(--accent); }
         .auth-btn.signup { background: var(--edit); }
         .search-wrapper { max-width: 450px; margin: 0 auto; position: relative; }
@@ -162,16 +171,7 @@
     renderGrid();
 });
 
-    setTimeout(() => {
-        if (addons.length === 0) {
-            addons = [
-                { name: "Action & Stuff", image: "https://i.postimg.cc/GtBvNw0b/IMG-20260706-WA0103.jpg", links: ["https://www.mediafire.com/file/oufir21241u5xgv/Actions_and_Stuff_1.11_By_Panzz.mcpack/file"], desc: "Animasi player baru", tag: "Add-on", author: "PanzzKeceeAbis", date: Date.now() },
-                { name: "More Trees", image: "https://i.postimg.cc/sxF9Mj8K/IMG-20260730-WA0053.jpg", links: ["https://www.mediafire.com/file/rjg3aauezana7gg/More_Trees_By_Panzz.mcaddon/file"], desc: "Tambahan pohon", tag: "Add-on", author: "PanzzKeceeAbis", date: Date.now() }
-            ];
-            db.ref('addons').set(addons);
-        }
-    }, 3000);
-
+     
     historyList = JSON.parse(localStorage.getItem('panzz_history') || '[]');
     savedAddons = JSON.parse(localStorage.getItem('panzz_saved') || '[]');
 
