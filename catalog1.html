@@ -151,9 +151,16 @@
     let users = {}, historyList = [], downloadCounts = {};
     currentUser = JSON.parse(localStorage.getItem('panzz_user_simple') || 'null');
 
-    db.ref('addons').on('value', s => { addons = s.exists() ? Object.values(s.val()) : []; renderGrid(); });
-    db.ref('users').on('value', s => { if (s.exists()) users = s.val(); });
-    db.ref('downloadCounts').on('value', s => { if (s.exists()) downloadCounts = s.val(); });
+    db.ref('addons').on('value', s => {
+    if (s.exists()) {
+        const data = s.val();
+        // Ubah dari object ke array
+        addons = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    } else {
+        addons = [];
+    }
+    if (currentTab !== 'profile' && currentTab !== 'history') renderGrid();
+});
 
     setTimeout(() => {
         if (addons.length === 0) {
@@ -209,20 +216,34 @@
     function logout() { currentUser = null; localStorage.removeItem('panzz_user_simple'); updateUI(); }
 
     function saveAddon() {
-        const name = document.getElementById('addName').value.trim(), imgFile = document.getElementById('addImage').files[0];
-        const link1 = document.getElementById('addLink1').value.trim(), link2 = document.getElementById('addLink2').value.trim();
-        const desc = document.getElementById('addDesc').value.trim(), tag = document.getElementById('addTag').value;
-        if (!name || !link1) { alert('Nama & Link wajib!'); return; }
-        function simpan(img) {
-            const links = [link1]; if (link2) links.push(link2);
-            const entry = { name, image: img || '', links, desc, tag, author: currentUser?.username || 'anon', date: Date.now() };
-            if (editIndex >= 0) addons[editIndex] = entry; else addons.unshift(entry);
-            db.ref('addons').set(addons);
-            closeModal('addModal'); switchTab('my'); addHistory(editIndex >= 0 ? 'Edit' : 'Tambah', name); editIndex = -1;
-        }
-        if (imgFile) { const r = new FileReader(); r.onload = e => simpan(e.target.result); r.readAsDataURL(imgFile); }
-        else simpan(editIndex >= 0 ? addons[editIndex].image : '');
+    const name = document.getElementById('addName').value.trim();
+    const imgFile = document.getElementById('addImage').files[0];
+    const link1 = document.getElementById('addLink1').value.trim();
+    const link2 = document.getElementById('addLink2').value.trim();
+    const desc = document.getElementById('addDesc').value.trim();
+    const tag = document.getElementById('addTag').value;
+    
+    if (!name || !link1) { alert('Nama & Link wajib!'); return; }
+    
+    function simpan(img) {
+        const links = [link1]; if (link2) links.push(link2);
+        const entry = { name, image: img || '', links, desc, tag, author: currentUser?.username || 'anon', date: Date.now() };
+        
+        // PAKE PUSH biar ga numpuk
+        db.ref('addons').push(entry)
+            .then(() => {
+                closeModal('addModal');
+                switchTab('my');
+                alert('Add-on ditambahkan!');
+            })
+            .catch(err => {
+                alert('Gagal: ' + err.message);
+            });
     }
+    
+    if (imgFile) { const r = new FileReader(); r.onload = e => simpan(e.target.result); r.readAsDataURL(imgFile); }
+    else simpan('');
+}
     function openEditForm(i) { if (!isCreator()) return; const a = addons[i]; editIndex = i; document.getElementById('addModalTitle').textContent = 'Edit Add-on'; document.getElementById('addBtn').textContent = 'Simpan'; document.getElementById('addName').value = a.name; document.getElementById('addLink1').value = (a.links&&a.links[0])||''; document.getElementById('addLink2').value = (a.links&&a.links[1])||''; document.getElementById('addDesc').value = a.desc||''; document.getElementById('addTag').value = a.tag||''; document.getElementById('addModal').classList.add('show'); }
     function deleteAddon(i) { if (!isCreator()) return; if (!confirm('Hapus?')) return; addons.splice(i,1); db.ref('addons').set(addons); switchTab('my'); }
     function saveForUser(i) { if (!isLoggedIn()) { alert('Login dulu!'); return; } const a = addons[i]; if (savedAddons.find(s => s.name === a.name && s.links[0] === a.links[0])) { alert('Sudah disimpan!'); return; } savedAddons.unshift({ ...a, savedBy: currentUser.username, savedDate: Date.now() }); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); alert('Tersimpan!'); switchTab(currentTab); }
