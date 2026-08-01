@@ -15,16 +15,7 @@
         .header { background: var(--card); padding: 14px 20px; text-align: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 10; }
         .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         .header h1 { font-size: 20px; color: var(--accent2); font-weight: 700; }
-      setTimeout(()  .auth-btns { display: flex; gap: 6px; align-items: center; }
-=> {
-        if (addons.length === 0) {
-            addons = [
-                { name: "Action & Stuff", image: "https://i.postimg.cc/GtBvNw0b/IMG-20260706-WA0103.jpg", links: ["https://www.mediafire.com/file/oufir21241u5xgv/Actions_and_Stuff_1.11_By_Panzz.mcpack/file"], desc: "Animasi player baru", tag: "Add-on", author: "PanzzKeceeAbis", date: Date.now() },
-                { name: "More Trees", image: "https://i.postimg.cc/sxF9Mj8K/IMG-20260730-WA0053.jpg", links: ["https://www.mediafire.com/file/rjg3aauezana7gg/More_Trees_By_Panzz.mcaddon/file"], desc: "Tambahan pohon", tag: "Add-on", author: "PanzzKeceeAbis", date: Date.now() }
-            ];
-            db.ref('addons').set(addons);
-        }
-    }, 3000);
+        .auth-btns { display: flex; gap: 6px; align-items: center; }
         .auth-btn { padding: 6px 14px; border-radius: 20px; font-size: 11px; cursor: pointer; border: none; color: white; font-weight: 600; background: var(--accent); }
         .auth-btn.signup { background: var(--edit); }
         .search-wrapper { max-width: 450px; margin: 0 auto; position: relative; }
@@ -140,7 +131,7 @@
             <button class="btn-gray" onclick="closeModal('addModal')">Batal</button>
         </div>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
     firebase.initializeApp({
@@ -160,18 +151,19 @@
     let users = {}, historyList = [], downloadCounts = {};
     currentUser = JSON.parse(localStorage.getItem('panzz_user_simple') || 'null');
 
+    // Load dari Firebase (TANPA DATA DEFAULT)
     db.ref('addons').on('value', s => { 
-    if (s.exists()) {
-        const data = s.val();
-        // Data udah array, langsung pakai
-        addons = Array.isArray(data) ? data : Object.values(data);
-    } else {
-        addons = [];
-    }
-    renderGrid();
-});
+        if (s.exists()) {
+            const data = s.val();
+            addons = Array.isArray(data) ? data : Object.values(data);
+        } else {
+            addons = [];
+        }
+        if (currentTab !== 'profile' && currentTab !== 'history') renderGrid(); 
+    });
+    db.ref('users').on('value', s => { if (s.exists()) users = s.val(); });
+    db.ref('downloadCounts').on('value', s => { if (s.exists()) downloadCounts = s.val(); });
 
-     
     historyList = JSON.parse(localStorage.getItem('panzz_history') || '[]');
     savedAddons = JSON.parse(localStorage.getItem('panzz_saved') || '[]');
 
@@ -190,17 +182,17 @@
             document.getElementById('authTitle').textContent = type === 'signin' ? 'Sign In' : 'Sign Up';
             document.getElementById('authModal').classList.add('show');
         } else if (type === 'add') {
-    editIndex = -1;
-    document.getElementById('addModalTitle').textContent = 'Tambah Add-on';
-    document.getElementById('addBtn').textContent = 'Tambah';
-    document.getElementById('addName').value = '';
-    document.getElementById('addImage').value = '';
-    document.getElementById('addLink1').value = '';
-    document.getElementById('addLink2').value = '';
-    document.getElementById('addDesc').value = '';
-    document.getElementById('addTag').value = '';
-    document.getElementById('addModal').classList.add('show');
-}
+            editIndex = -1;
+            document.getElementById('addModalTitle').textContent = 'Tambah Add-on';
+            document.getElementById('addBtn').textContent = 'Tambah';
+            document.getElementById('addName').value = '';
+            document.getElementById('addImage').value = '';
+            document.getElementById('addLink1').value = '';
+            document.getElementById('addLink2').value = '';
+            document.getElementById('addDesc').value = '';
+            document.getElementById('addTag').value = '';
+            document.getElementById('addModal').classList.add('show');
+        }
     }
     function closeModal(id) { document.getElementById(id).classList.remove('show'); }
     function toggleAuthMode() { authMode = authMode === 'signin' ? 'signup' : 'signin'; document.getElementById('authTitle').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up'; }
@@ -216,41 +208,27 @@
     function logout() { currentUser = null; localStorage.removeItem('panzz_user_simple'); updateUI(); }
 
     function saveAddon() {
-    const name = document.getElementById('addName').value.trim();
-    const imgFile = document.getElementById('addImage').files[0];
-    const link1 = document.getElementById('addLink1').value.trim();
-    const link2 = document.getElementById('addLink2').value.trim();
-    const desc = document.getElementById('addDesc').value.trim();
-    const tag = document.getElementById('addTag').value;
-    
-    if (!name || !link1) { alert('Nama & Link wajib!'); return; }
-    
-    function simpan(img) {
-        const links = [link1]; if (link2) links.push(link2);
-        const entry = { name, image: img || '', links, desc, tag, author: currentUser?.username || 'anon', date: Date.now() };
-        
-        // PAKE PUSH biar ga numpuk
-        db.ref('addons').push(entry)
-            .then(() => {
-                closeModal('addModal');
-                switchTab('my');
-                alert('Add-on ditambahkan!');
-            })
-            .catch(err => {
-                alert('Gagal: ' + err.message);
-            });
+        const name = document.getElementById('addName').value.trim(), imgFile = document.getElementById('addImage').files[0];
+        const link1 = document.getElementById('addLink1').value.trim(), link2 = document.getElementById('addLink2').value.trim();
+        const desc = document.getElementById('addDesc').value.trim(), tag = document.getElementById('addTag').value;
+        if (!name || !link1) { alert('Nama & Link wajib!'); return; }
+        function simpan(img) {
+            const links = [link1]; if (link2) links.push(link2);
+            const entry = { name, image: img || '', links, desc, tag, author: currentUser?.username || 'anon', date: Date.now() };
+            if (editIndex >= 0) addons[editIndex] = entry; else addons.unshift(entry);
+            db.ref('addons').set(addons);
+            closeModal('addModal'); switchTab('my'); addHistory(editIndex >= 0 ? 'Edit' : 'Tambah', name); editIndex = -1;
+        }
+        if (imgFile) { const r = new FileReader(); r.onload = e => simpan(e.target.result); r.readAsDataURL(imgFile); }
+        else simpan(editIndex >= 0 ? addons[editIndex].image : '');
     }
-    
-    if (imgFile) { const r = new FileReader(); r.onload = e => simpan(e.target.result); r.readAsDataURL(imgFile); }
-    else simpan('');
-}
     function openEditForm(i) { if (!isCreator()) return; const a = addons[i]; editIndex = i; document.getElementById('addModalTitle').textContent = 'Edit Add-on'; document.getElementById('addBtn').textContent = 'Simpan'; document.getElementById('addName').value = a.name; document.getElementById('addLink1').value = (a.links&&a.links[0])||''; document.getElementById('addLink2').value = (a.links&&a.links[1])||''; document.getElementById('addDesc').value = a.desc||''; document.getElementById('addTag').value = a.tag||''; document.getElementById('addModal').classList.add('show'); }
     function deleteAddon(i) { if (!isCreator()) return; if (!confirm('Hapus?')) return; addons.splice(i,1); db.ref('addons').set(addons); switchTab('my'); }
     function saveForUser(i) { if (!isLoggedIn()) { alert('Login dulu!'); return; } const a = addons[i]; if (savedAddons.find(s => s.name === a.name && s.links[0] === a.links[0])) { alert('Sudah disimpan!'); return; } savedAddons.unshift({ ...a, savedBy: currentUser.username, savedDate: Date.now() }); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); alert('Tersimpan!'); switchTab(currentTab); }
     function removeSaved(i) { savedAddons.splice(i,1); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); switchTab('my'); }
 
     function downloadAddon(link, name) { addCount(name); addHistory('Download', name); window.open(link, '_blank'); setTimeout(renderGrid, 500); }
-            const grid = document.getElementById('grid'), searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('grid'), searchInput = document.getElementById('searchInput');
 
         function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHistory(q); renderGrid(); }
         function toggleAdvancedSearch() { const adv = document.getElementById('advancedSearch'), label = document.getElementById('advLabel'); if (adv.style.display === 'none' || adv.style.display === '') { adv.style.display = 'block'; if (label) label.textContent = 'Tutup'; } else { adv.style.display = 'none'; if (label) label.textContent = 'Filter'; document.getElementById('tagFilter').value = ''; renderGrid(); } }
