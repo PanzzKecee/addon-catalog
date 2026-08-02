@@ -214,7 +214,7 @@
         if (!name || !link1) { alert('Nama & Link wajib!'); return; }
         function simpan(img) {
             const links = [link1]; if (link2) links.push(link2);
-            const entry = { name, image: img || '', links, desc, tag, author: currentUser?.username || 'anon', date: Date.now() };
+            const entry = { name, image: img || '', links, desc, tag, author: author: editIndex >= 0 ? addons[editIndex].author : (currentUser?.username || 'anon'), date: Date.now() };
             if (editIndex >= 0) addons[editIndex] = entry; else addons.unshift(entry);
             db.ref('addons').set(addons);
             closeModal('addModal'); switchTab('my'); addHistory(editIndex >= 0 ? 'Edit' : 'Tambah', name); editIndex = -1;
