@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panzz Add-on Minecraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+    :root{
+        --bg:#0c0e12; --bg-grid:#101319;
+        --panel:#1a1d24; --panel-hi:#20242c;
+        --border:#2c313c; --border-hi:#3c4453;
+        --text:#eceef2; --text2:#8a91a1; --text3:#565d6b;
+
+        --emerald:#39d67e; --emerald-dk:#1c9c58; --emerald-glow:rgba(57,214,126,.35);
+        --diamond:#4fc8e8; --diamond-dk:#2a8fac;
+        --amber:#ffb545; --amber-dk:#c98120;
+        --redstone:#ff5c5c; --redstone-dk:#c73e3e;
+        --lapis:#5b7cfa;
+
+        --radius-notch:10px;
+        --font-body:'Inter', system-ui, sans-serif;
+        --font-mono:'JetBrains Mono', monospace;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{
+        font-family:var(--font-body); background:var(--bg); color:var(--text);
+        min-height:100vh; padding-bottom:86px; position:relative;
+        -webkit-tap-highlight-color:transparent;
+    }
+    body::before{
+        content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+        background-image:
+            linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+            linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+        background-size:26px 26px;
+        -webkit-mask-image:radial-gradient(ellipse 100% 60% at 50% 0%,#000 0%,transparent 75%);
+        mask-image:radial-gradient(ellipse 100% 60% at 50% 0%,#000 0%,transparent 75%);
+    }
+    ::selection{background:var(--emerald); color:#08110c;}
+    ::-webkit-scrollbar{width:8px;height:8px;}
+    ::-webkit-scrollbar-thumb{background:var(--border-hi); border-radius:4px;}
+
+    /* ---------- isometric cube brand mark ---------- */
+    .cube{width:22px;height:20px;position:relative;flex-shrink:0;}
+    .cube i{position:absolute; width:11px; height:12px;}
+    .cube .top{top:0;left:0; background:var(--emerald); clip-path:polygon(50% 0,100% 25%,50% 50%,0 25%); width:22px; height:12px;}
+    .cube .left{bottom:0;left:0; background:var(--emerald-dk); clip-path:polygon(0 0,50% 25%,50% 100%,0 75%); width:11px; height:16px;}
+    .cube .right{bottom:0;right:0; background:#0f7a45; clip-path:polygon(50% 25%,100% 0,100% 75%,50% 100%); width:11px; height:16px;}
+    .cube.spin{animation:cubespin 1.1s linear infinite;}
+    @keyframes cubespin{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.06) rotate(3deg)}}
+
+    /* ---------- header ---------- */
+    .header{
+        background:linear-gradient(180deg,#15181f,#101216 90%);
+        border-bottom:1px solid var(--border);
+        padding:16px 18px 14px; position:sticky; top:0; z-index:30;
+        backdrop-filter:blur(10px);
+    }
+    .header-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+    .brand{display:flex; align-items:center; gap:11px;}
+    .brand h1{
+        font-family:var(--font-body); font-weight:800; font-size:14px; letter-spacing:-.2px;
+        color:var(--text); line-height:1.25;
+    }
+    .brand h1 span{color:var(--emerald); display:block;}
+    .auth-btns{display:flex; gap:8px; align-items:center;}
+    .auth-btn{
+        padding:8px 14px; font-family:var(--font-body); font-weight:700; font-size:11px;
+        letter-spacing:.3px; cursor:pointer; border-radius:7px; color:#08110c;
+        background:var(--emerald); border:1px solid var(--emerald-dk);
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 0 var(--emerald-dk);
+        transition:transform .08s ease, box-shadow .08s ease;
+    }
+    .auth-btn.signup{background:var(--diamond); border-color:var(--diamond-dk); box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 0 var(--diamond-dk);}
+    .auth-btn:active{transform:translateY(2px); box-shadow:none;}
+    .user-chip{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--text);}
+    .user-chip .role-tag{font-size:9px; font-family:var(--font-mono); font-weight:700; padding:2px 6px; border-radius:4px; background:var(--panel-hi); color:var(--amber); border:1px solid var(--border-hi);}
+
+    .search-wrapper{position:relative; max-width:560px; margin:0 auto;}
+    .search-wrapper input{
+        width:100%; padding:12px 44px 12px 16px; border-radius:9px; font-size:14px;
+        background:var(--panel); border:1px solid var(--border); color:var(--text);
+        outline:none; font-family:var(--font-body); transition:border-color .15s, box-shadow .15s;
+    }
+    .search-wrapper input::placeholder{color:var(--text3);}
+    .search-wrapper input:focus{border-color:var(--emerald); box-shadow:0 0 0 3px var(--emerald-glow);}
+    .search-icon{
+        position:absolute; right:14px; top:50%; transform:translateY(-50%);
+        color:var(--text3); pointer-events:none; display:flex;
+    }
+    #advSearchBtn{
+        display:flex !important; align-items:center; gap:8px; justify-content:flex-start;
+        margin:10px auto 0; padding:6px 10px; background:none; border:none; cursor:pointer;
+        border-radius:6px; transition:background .12s;
+    }
+    #advSearchBtn:hover{background:var(--panel);}
+    #advSearchBtn span:first-child{display:flex; flex-direction:column; gap:3px; align-items:flex-start;}
+    #advSearchBtn span:first-child span{display:block; height:2px; border-radius:1px; background:var(--diamond);}
+    #advSearchBtn span:first-child span:nth-child(1){width:16px;}
+    #advSearchBtn span:first-child span:nth-child(2){width:11px;}
+    #advSearchBtn span:first-child span:nth-child(3){width:6px;}
+    #advLabel{font-size:11px; color:var(--diamond); font-weight:600; letter-spacing:.3px;}
+    #advancedSearch{display:none; text-align:center; margin-top:6px;}
+    #advancedSearch select{
+        padding:9px 14px; border-radius:20px; font-size:12px; margin:4px;
+        background:var(--panel); border:1px solid var(--border); color:var(--text);
+        font-family:var(--font-body);
+    }
+
+    /* ---------- layout ---------- */
+    .container{max-width:900px; margin:0 auto; padding:18px 16px; position:relative; z-index:1;}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+    @media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr);}}
+
+    /* ---------- slot card (signature element) ---------- */
+    .card{
+        background:var(--panel);
+        clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+        box-shadow:
+            inset 0 0 0 1px var(--border),
+            inset 1px 1px 0 rgba(255,255,255,.05),
+            inset -1px -1px 0 rgba(0,0,0,.4);
+        overflow:hidden; opacity:0; animation:fadeInUp .45s ease forwards;
+        transition:box-shadow .15s ease, transform .12s ease;
+    }
+    .card:hover{
+        transform:translateY(-2px);
+        box-shadow:inset 0 0 0 1px var(--emerald-dk), inset 1px 1px 0 rgba(255,255,255,.08), inset -1px -1px 0 rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+    }
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .card:nth-child(1){animation-delay:.03s}.card:nth-child(2){animation-delay:.07s}.card:nth-child(3){animation-delay:.11s}
+    .card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.19s}.card:nth-child(6){animation-delay:.23s}
+    .card:nth-child(n+7){animation-delay:.26s}
+    .card-img{width:100%; aspect-ratio:16/9; object-fit:cover; background:linear-gradient(135deg,#1c2b22,#182022); display:block;}
+    .card-body{padding:12px 13px 13px;}
+    .card-author{font-size:10px; color:var(--diamond); font-weight:600; margin-bottom:4px; font-family:var(--font-mono);}
+    .card-title{font-size:13.5px; font-weight:700; margin-bottom:6px; line-height:1.3; color:var(--text);}
+    .card-tag{
+        display:inline-block; background:rgba(57,214,126,.12); color:var(--emerald);
+        font-size:9.5px; font-weight:700; letter-spacing:.4px; padding:3px 8px; border-radius:5px;
+        margin-bottom:7px; border:1px solid rgba(57,214,126,.25); font-family:var(--font-mono);
+    }
+    .card-desc{font-size:11.5px; color:var(--text2); margin-bottom:8px; line-height:1.5;}
+    .card-btn{
+        display:block; width:100%; padding:10px; color:#08110c; border:none; border-radius:7px;
+        font-size:12px; font-weight:700; cursor:pointer; text-align:center; margin-top:6px;
+        font-family:var(--font-body); letter-spacing:.2px; position:relative; overflow:hidden;
+        transition:transform .08s ease, filter .1s ease;
+    }
+    .card-btn:hover{filter:brightness(1.08);}
+    .card-btn:active{transform:scale(.96);}
+    .card-btn.dl{background:var(--emerald); box-shadow:0 2px 0 var(--emerald-dk);}
+    .card-btn.edit{background:var(--diamond); box-shadow:0 2px 0 var(--diamond-dk);}
+    .card-btn.delete{background:var(--redstone); color:#2a0808; box-shadow:0 2px 0 var(--redstone-dk);}
+    .card-btn.save{background:var(--amber); box-shadow:0 2px 0 var(--amber-dk);}
+    .card-btn:active{box-shadow:none; transform:translateY(2px) scale(.98);}
+    .card-count{
+        font-size:10px; color:var(--text3); text-align:center; margin-top:9px; padding-top:9px;
+        border-top:1px dashed var(--border); font-family:var(--font-mono);
+    }
+
+    /* particle burst on download */
+    .burst{position:fixed; width:6px; height:6px; pointer-events:none; z-index:400; border-radius:1px;}
+
+    /* ---------- bottom nav (hotbar) ---------- */
+    .navbar{
+        position:fixed; bottom:0; left:0; right:0; z-index:100;
+        background:linear-gradient(0deg,#101216,#15181f 90%);
+        border-top:1px solid var(--border);
+        display:flex; justify-content:center; gap:6px;
+        padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+    }
+    .nav-item{
+        font-size:9.5px; color:var(--text3); display:flex; flex-direction:column; align-items:center;
+        gap:4px; cursor:pointer; padding:6px 14px 5px; border-radius:8px; position:relative;
+        background:var(--panel); border:1px solid transparent; transition:all .12s ease; font-weight:600;
+        width:64px;
+    }
+    .nav-item span{display:flex; pointer-events:none; transition:transform .15s;}
+    .nav-item:active{transform:scale(.92);}
+    .nav-item.active{color:var(--emerald); border-color:var(--emerald-dk); background:rgba(57,214,126,.08); box-shadow:0 0 0 1px var(--emerald-dk), 0 0 12px rgba(57,214,126,.25);}
+    .nav-item.active span{transform:translateY(-1px);}
+
+    /* ---------- modal ---------- */
+    .modal-overlay{
+        display:none; position:fixed; inset:0; background:rgba(6,7,9,.72); z-index:200;
+        align-items:center; justify-content:center; backdrop-filter:blur(3px); padding:20px;
+    }
+    .modal-overlay.show{display:flex; animation:fadeIn .18s ease;}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal-box{
+        background:var(--panel); padding:22px 20px; width:100%; max-width:380px;
+        animation:slideUp .25s cubic-bezier(.2,.8,.3,1.1);
+        clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+        box-shadow:inset 0 0 0 1px var(--border-hi), inset 1px 1px 0 rgba(255,255,255,.06), 0 20px 50px rgba(0,0,0,.5);
+    }
+    @keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .modal-box h3{margin-bottom:14px; font-size:16px; font-family:var(--font-body); font-weight:700; color:var(--emerald); letter-spacing:0;}
+    .modal-box input, .modal-box select, .modal-box textarea{
+        width:100%; padding:11px 12px; margin:6px 0; border:1px solid var(--border); border-radius:7px;
+        font-size:13px; background:var(--bg); color:var(--text); font-family:var(--font-body); outline:none;
+        transition:border-color .12s;
+    }
+    .modal-box input:focus, .modal-box select:focus, .modal-box textarea:focus{border-color:var(--emerald);}
+    .modal-box input::placeholder, .modal-box textarea::placeholder{color:var(--text3);}
+    .modal-box small{color:var(--text3); font-size:10px; display:block; margin:-2px 0 6px 2px;}
+    .modal-box button{
+        width:100%; padding:11px; color:#08110c; border:none; border-radius:7px; font-size:13px;
+        font-weight:700; cursor:pointer; margin-top:7px; font-family:var(--font-body); transition:transform .08s;
+    }
+    .modal-box button:active{transform:scale(.97);}
+    .btn-green{background:var(--emerald); box-shadow:0 2px 0 var(--emerald-dk);}
+    .btn-gray{background:var(--panel-hi); color:var(--text2); box-shadow:0 2px 0 #0c0d10; border:1px solid var(--border);}
+
+    .no-result{text-align:center; padding:70px 20px; color:var(--text3); grid-column:1/-1; font-size:13px;}
+    .no-result .cube{margin:0 auto 14px;}
+
+    .history-list{list-style:none; padding:0;}
+    .history-list li{
+        background:var(--panel); padding:11px 13px; border-radius:8px; margin-bottom:7px; font-size:12px;
+        display:flex; justify-content:space-between; gap:10px; border:1px solid var(--border); color:var(--text2);
+    }
+    .history-list li span:last-child{color:var(--text3); font-size:10px; font-family:var(--font-mono); white-space:nowrap;}
+    h4.section-label{font-family:var(--font-mono); font-size:11px; letter-spacing:.5px; color:var(--text3); margin:16px 0 8px; text-transform:uppercase;}
+
+    .profile-pic{width:96px; height:96px; border-radius:14px; object-fit:cover; border:2px solid var(--border-hi); margin:0 auto 12px; display:block; background:var(--panel-hi);}
+    .profile-pic-small{width:28px; height:28px; border-radius:7px; object-fit:cover; border:1px solid var(--border-hi); vertical-align:middle;}
+
+    .profile-block{background:var(--panel); padding:14px; border-radius:10px; margin-bottom:10px; border:1px solid var(--border); text-align:left;}
+    .profile-block .row-title{font-size:12.5px; font-weight:700; margin-bottom:8px; color:var(--text);}
+    .profile-block small{color:var(--text3); font-size:10px;}
+
+    /* ---------- toast ---------- */
+    #toastHost{position:fixed; left:0; right:0; bottom:88px; z-index:500; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none;}
+    .toast{
+        background:var(--panel); border:1px solid var(--border-hi); color:var(--text); font-size:12.5px;
+        font-weight:600; padding:11px 18px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.45);
+        animation:toastIn .25s ease, toastOut .25s ease 2.3s forwards; max-width:88vw; text-align:center;
+    }
+    .toast.err{border-color:var(--redstone);}
+    .toast.ok{border-color:var(--emerald);}
+    @keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes toastOut{to{opacity:0;transform:translateY(-6px) scale(.97)}}
+</style>
+</head>
+<body>
+    <div id="toastHost"></div>
+
+    <div class="header">
+        <div class="header-top">
+            <div class="brand">
+                <div class="cube"><i class="top"></i><i class="left"></i><i class="right"></i></div>
+                <h1>Panzz<br><span>Add-on</span></h1>
+            </div>
+            <div id="authBtns">
+                <button class="auth-btn" onclick="openModal('signin')">Sign In</button>
+                <button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>
+            </div>
+        </div>
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" placeholder="Cari add-on, texture, world..." oninput="searchAddons()" />
+            <span class="search-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg></span>
+        </div>
+        <button id="advSearchBtn" onclick="toggleAdvancedSearch()">
+            <span><span></span><span></span><span></span></span>
+            <span id="advLabel">Filter</span>
+        </button>
+        <div id="advancedSearch">
+            <select id="tagFilter" onchange="renderGrid()">
+                <option value="">Semua Tag</option>
+                <option value="Texture Pack">Texture Pack</option>
+                <option value="Add-on">Add-on</option>
+                <option value="World">World</option>
+                <option value="Skin">Skin</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="navbar">
+        <div class="nav-item active" onclick="switchTab('all')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></svg></span>All</div>
+        <div class="nav-item" onclick="switchTab('recent')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l3 2"/></svg></span>Terbaru</div>
+        <div class="nav-item" onclick="switchTab('history')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg></span>History</div>
+        <div class="nav-item" onclick="switchTab('my')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></span>Addon Saya</div>
+        <div class="nav-item" onclick="switchTab('profile')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg></span>Profile</div>
+    </div>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <h3 id="authTitle">Sign In</h3>
+            <input type="text" id="authUser" placeholder="Username" />
+            <input type="password" id="authPass" placeholder="Password" />
+            <button class="btn-green" onclick="handleAuth()">Sign In</button>
+            <button class="btn-gray" onclick="toggleAuthMode()">Switch</button>
+            <button class="btn-gray" onclick="closeModal('authModal')">Tutup</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-box">
+            <h3 id="addModalTitle">Tambah Add-on</h3>
+            <input type="text" id="addName" placeholder="Nama Add-on" />
+            <input type="file" id="addImage" accept="image/*" /><small>Thumbnail</small>
+            <input type="text" id="addLink1" placeholder="Link Download (MediaFire)" />
+            <input type="text" id="addLink2" placeholder="Link Download 2 (opsional)" />
+            <textarea id="addDesc" placeholder="Deskripsi" rows="2"></textarea>
+            <select id="addTag">
+                <option value="">Pilih Tag</option>
+                <option value="Texture Pack">Texture Pack</option>
+                <option value="Add-on">Add-on</option>
+                <option value="World">World</option>
+                <option value="Skin">Skin</option>
+            </select>
+            <button class="btn-green" id="addBtn" onclick="saveAddon()">Tambah</button>
+            <button class="btn-gray" onclick="closeModal('addModal')">Batal</button>
+        </div>
+    </div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+    // ---------- state (dideklarasikan PALING AWAL, sebelum apa pun yang bisa gagal) ----------
+    // Ini sengaja ditaruh di atas: kalau skrip Firebase gagal dimuat (offline, adblock, CSP
+    // preview, dll), variabel-variabel ini tetap terinisialisasi duluan sehingga semua tombol
+    // (buka modal, ganti tab, dsb) tetap berfungsi normal walau sinkronisasi ke server gagal.
+    const CREATOR_USERNAME = "PanzzKeceeAbis", CREATOR_PASSWORD = "Panzz28072012";
+    const ADMIN_PASSWORDS = ["UserAdmin123/--_", CREATOR_PASSWORD];
+    let addons = [], savedAddons = [], currentTab = 'all', authMode = 'signin', currentUser = null, editIndex = -1;
+    let users = {}, historyList = [], downloadCounts = {};
+    let db = null, dbReady = false;
+    currentUser = JSON.parse(localStorage.getItem('panzz_user_simple') || 'null');
+
+    // ---------- init Firebase (aman: kegagalan tidak menjatuhkan seluruh skrip) ----------
+    try {
+        if (typeof firebase === 'undefined') throw new Error('SDK Firebase gagal dimuat (cek koneksi internet)');
+        firebase.initializeApp({
+            apiKey: "AIzaSyAB3iSaswJIjn-LCfvE4EcMpPhlKA0NrJU",
+            authDomain: "catalog-50636.firebaseapp.com",
+            databaseURL: "https://catalog-50636-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "catalog-50636",
+            storageBucket: "catalog-50636.firebasestorage.app",
+            messagingSenderId: "968411076830",
+            appId: "1:968411076830:web:4b4dd0b969e9e65e718a4f"
+        });
+        db = firebase.database();
+        dbReady = true;
+    } catch (e) {
+        console.error('Firebase gagal diinisialisasi:', e);
+        db = null; dbReady = false;
+    }
+    // dipanggil setiap kali mau nulis/baca ke db supaya tidak melempar error kalau db tidak siap
+    function withDb(fn) { if (!dbReady || !db) { toast('Offline: perubahan hanya tersimpan di perangkat ini', 'err'); return false; } fn(); return true; }
+
+    // ---------- ikon SVG (pengganti emoji, konsisten di semua perangkat) ----------
+    function icn(name, size) {
+        size = size || 14;
+        const common = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2.5px;flex-shrink:0"`;
+        const paths = {
+            home: `<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/>`,
+            clock: `<circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l3 2"/>`,
+            list: `<rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>`,
+            box: `<path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/>`,
+            user: `<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/>`,
+            search: `<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/>`,
+            download: `<path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/>`,
+            bookmark: `<path d="M7 3.5h10a1 1 0 0 1 1 1V21l-6-4-6 4V4.5a1 1 0 0 1 1-1z"/>`,
+            pencil: `<path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/>`,
+            camera: `<path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13.5" r="3.5"/>`,
+            lock: `<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`,
+            alert: `<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/>`,
+            trash: `<path d="M5 7h14"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M7 7l1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"/>`,
+            crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
+            shield: `<path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/>`
+        };
+        return `<svg ${common}>${paths[name] || ''}</svg>`;
+    }
+
+    // ---------- toast helper (pengganti alert supaya lebih halus, perilaku sama) ----------
+    function toast(msg, type) {
+        const host = document.getElementById('toastHost');
+        const el = document.createElement('div');
+        el.className = 'toast' + (type === 'err' ? ' err' : type === 'ok' ? ' ok' : '');
+        el.textContent = msg;
+        host.appendChild(el);
+        setTimeout(() => el.remove(), 2600);
+    }
+    function alert(msg) { toast(String(msg)); } // override ringan agar semua alert() lama tampil sebagai toast
+
+    // particle burst kecil saat tombol ditekan (feedback visual "block break")
+    function burst(x, y, color) {
+        for (let i = 0; i < 8; i++) {
+            const p = document.createElement('div');
+            p.className = 'burst';
+            p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.background = color;
+            document.body.appendChild(p);
+            const ang = Math.random() * Math.PI * 2, dist = 18 + Math.random() * 24;
+            p.animate([
+                { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                { transform: `translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px) scale(0)`, opacity: 0 }
+            ], { duration: 420 + Math.random() * 150, easing: 'cubic-bezier(.2,.7,.3,1)' });
+            setTimeout(() => p.remove(), 600);
+        }
+    }
+
+    // Load dari Firebase (TANPA DATA DEFAULT) — hanya kalau db berhasil connect
+    if (dbReady) {
+        db.ref('addons').on('value', s => {
+            if (s.exists()) {
+                const data = s.val();
+                addons = Array.isArray(data) ? data : Object.values(data);
+            } else {
+                addons = [];
+            }
+            if (currentTab !== 'profile' && currentTab !== 'history') renderGrid();
+        });
+        db.ref('users').on('value', s => { if (s.exists()) users = s.val(); });
+        db.ref('downloadCounts').on('value', s => { if (s.exists()) downloadCounts = s.val(); });
+    }
+
+    historyList = JSON.parse(localStorage.getItem('panzz_history') || '[]');
+    savedAddons = JSON.parse(localStorage.getItem('panzz_saved') || '[]');
+
+    const isLoggedIn = () => !!currentUser;
+    function isAdmin() { return currentUser && ADMIN_PASSWORDS.includes(currentUser.pass) && !(currentUser.username === CREATOR_USERNAME && currentUser.pass === CREATOR_PASSWORD); }
+    function isCreator() { return currentUser && currentUser.username === CREATOR_USERNAME && currentUser.pass === CREATOR_PASSWORD; }
+    function getTitle() { if (isCreator()) return 'Creator'; if (isAdmin()) return 'Admin'; return 'User'; }
+
+    function addHistory(action, detail) { historyList.unshift({ action, detail, time: new Date().toLocaleString() }); if (historyList.length > 50) historyList.pop(); localStorage.setItem('panzz_history', JSON.stringify(historyList)); }
+    function addSearchHistory(q) { if (!q || !q.trim()) return; const sh = JSON.parse(localStorage.getItem('panzz_searchHistory') || '[]'); sh.unshift({ query: q.trim(), time: new Date().toLocaleString() }); if (sh.length > 30) sh.pop(); localStorage.setItem('panzz_searchHistory', JSON.stringify(sh)); }
+    function addCount(id) { downloadCounts[id] = (downloadCounts[id] || 0) + 1; if (dbReady) db.ref('downloadCounts/' + id).set(downloadCounts[id]); }
+
+    function openModal(type) {
+        if (type === 'signin' || type === 'signup') {
+            authMode = type;
+            document.getElementById('authTitle').textContent = type === 'signin' ? 'Sign In' : 'Sign Up';
+            document.getElementById('authModal').classList.add('show');
+        } else if (type === 'add') {
+            editIndex = -1;
+            document.getElementById('addModalTitle').textContent = 'Tambah Add-on';
+            document.getElementById('addBtn').textContent = 'Tambah';
+            document.getElementById('addName').value = '';
+            document.getElementById('addImage').value = '';
+            document.getElementById('addLink1').value = '';
+            document.getElementById('addLink2').value = '';
+            document.getElementById('addDesc').value = '';
+            document.getElementById('addTag').value = '';
+            document.getElementById('addModal').classList.add('show');
+        }
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+    function toggleAuthMode() { authMode = authMode === 'signin' ? 'signup' : 'signin'; document.getElementById('authTitle').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up'; }
+    function handleAuth() {
+        const u = document.getElementById('authUser').value.trim(), p = document.getElementById('authPass').value.trim();
+        if (!u || !p) { alert('Isi semua!'); return; }
+        if (authMode === 'signup') { if (users[u]) { alert('Username sudah dipakai!'); return; } users[u] = { pass: p }; if (dbReady) db.ref('users/' + u).set({ pass: p }); toast('Akun dibuat!', 'ok'); toggleAuthMode(); return; }
+        if (!users[u] || users[u].pass !== p) { alert('Username atau password salah!'); return; }
+        currentUser = { username: u, pass: p };
+        localStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
+        closeModal('authModal'); toast('Selamat datang, ' + u + '!', 'ok'); updateUI();
+    }
+    function logout() { currentUser = null; localStorage.removeItem('panzz_user_simple'); updateUI(); }
+
+    function saveAddon() {
+        const name = document.getElementById('addName').value.trim(), imgFile = document.getElementById('addImage').files[0];
+        const link1 = document.getElementById('addLink1').value.trim(), link2 = document.getElementById('addLink2').value.trim();
+        const desc = document.getElementById('addDesc').value.trim(), tag = document.getElementById('addTag').value;
+        if (!name || !link1) { alert('Nama & Link wajib!'); return; }
+        function simpan(img) {
+            const links = [link1]; if (link2) links.push(link2);
+            const entry = { name, image: img || '', links, desc, tag, author: editIndex >= 0 ? addons[editIndex].author : (currentUser?.username || 'anon'), date: Date.now() };
+            if (editIndex >= 0) addons[editIndex] = entry; else addons.unshift(entry);
+            if (dbReady) db.ref('addons').set(addons);
+            closeModal('addModal'); switchTab('my'); addHistory(editIndex >= 0 ? 'Edit' : 'Tambah', name); toast(editIndex >= 0 ? 'Add-on diperbarui!' : 'Add-on ditambahkan!', 'ok'); editIndex = -1;
+        }
+        if (imgFile) { const r = new FileReader(); r.onload = e => simpan(e.target.result); r.readAsDataURL(imgFile); }
+        else simpan(editIndex >= 0 ? addons[editIndex].image : '');
+    }
+    function openEditForm(i) { if (!isCreator()) return; const a = addons[i]; editIndex = i; document.getElementById('addModalTitle').textContent = 'Edit Add-on'; document.getElementById('addBtn').textContent = 'Simpan'; document.getElementById('addName').value = a.name; document.getElementById('addLink1').value = (a.links&&a.links[0])||''; document.getElementById('addLink2').value = (a.links&&a.links[1])||''; document.getElementById('addDesc').value = a.desc||''; document.getElementById('addTag').value = a.tag||''; document.getElementById('addModal').classList.add('show'); }
+    function deleteAddon(i) { if (!isCreator()) return; if (!confirm('Hapus?')) return; addons.splice(i,1); if (dbReady) db.ref('addons').set(addons); switchTab('my'); toast('Add-on dihapus', 'ok'); }
+    function saveForUser(i) { if (!isLoggedIn()) { alert('Login dulu!'); return; } const a = addons[i]; if (savedAddons.find(s => s.name === a.name && s.links[0] === a.links[0])) { alert('Sudah disimpan!'); return; } savedAddons.unshift({ ...a, savedBy: currentUser.username, savedDate: Date.now() }); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); toast('Tersimpan!', 'ok'); switchTab(currentTab); }
+    function removeSaved(i) { savedAddons.splice(i,1); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); switchTab('my'); }
+
+    function downloadAddon(link, name, ev) {
+        if (ev) { const r = ev.target.getBoundingClientRect(); burst(r.left + r.width/2, r.top + r.height/2, 'var(--emerald)'.includes('var') ? getComputedStyle(document.documentElement).getPropertyValue('--emerald') : '#39d67e'); }
+        addCount(name); addHistory('Download', name); window.open(link, '_blank'); setTimeout(renderGrid, 500);
+    }
+    const grid = document.getElementById('grid'), searchInput = document.getElementById('searchInput');
+
+    function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHistory(q); renderGrid(); }
+    function toggleAdvancedSearch() { const adv = document.getElementById('advancedSearch'), label = document.getElementById('advLabel'); if (adv.style.display === 'none' || adv.style.display === '') { adv.style.display = 'block'; if (label) label.textContent = 'Tutup'; } else { adv.style.display = 'none'; if (label) label.textContent = 'Filter'; document.getElementById('tagFilter').value = ''; renderGrid(); } }
+
+    function renderGrid() {
+        grid.innerHTML = '';
+        const f = searchInput.value.toLowerCase(), tagF = document.getElementById('tagFilter')?.value || '';
+        let list = [...addons];
+        if (currentTab === 'recent') list = list.slice(0,5);
+        if (currentTab === 'my') {
+            if (!isLoggedIn()) { grid.innerHTML = '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Login dulu.</div>'; return; }
+            if (isAdmin() || isCreator()) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;margin-bottom:12px;"><button class="card-btn save" style="width:auto;padding:10px 20px;" onclick="openModal(\'add\')">+ Tambah Add-on</button></div>';
+            list = (isAdmin() || isCreator()) ? addons.filter(a => a.author === currentUser.username) : savedAddons.filter(a => a.savedBy === currentUser.username);
+        }
+        if (f) list = list.filter(a => a.name.toLowerCase().includes(f) || (a.desc||'').toLowerCase().includes(f));
+        if (tagF) list = list.filter(a => (a.tag||'') === tagF);
+        if (!list.length) { grid.innerHTML += '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Kosong</div>'; return; }
+        let cards = '';
+        list.forEach((a,i) => {
+            const idx = addons.indexOf(a);
+            const links = (a.links||[]).map((l,j) => `<button class="card-btn dl" onclick="downloadAddon('${l}','${a.name}',event)">${icn('download')} Download ${a.links.length>1?j+1:''}</button>`).join('');
+            const saveBtn = (!isAdmin() && !isCreator() && isLoggedIn() && currentTab !== 'my') ? `<button class="card-btn save" onclick="saveForUser(${idx})">${icn('bookmark')} Simpan</button>` : '';
+            const removeBtn = (!isAdmin() && !isCreator() && currentTab === 'my') ? `<button class="card-btn delete" onclick="removeSaved(${i})">Hapus</button>` : '';
+            const adminBtns = (isCreator()) ? `<button class="card-btn edit" onclick="openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="deleteAddon(${idx})">Hapus</button>` : (isAdmin() && currentTab === 'my') ? `<button class="card-btn edit" onclick="openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="deleteAddon(${idx})">Hapus</button>` : '';
+            cards += `<div class="card">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span><div class="card-desc">${a.desc||''}</div>${links}${saveBtn}${removeBtn}${adminBtns}<div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div>`;
+        });
+        grid.innerHTML += cards;
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        const el = Array.from(document.querySelectorAll('.nav-item')).find(e => e.textContent.includes(tab === 'all' ? 'All' : tab === 'recent' ? 'Terbaru' : tab === 'history' ? 'History' : tab === 'my' ? 'Addon Saya' : 'Profile'));
+        if (el) el.classList.add('active');
+        searchInput.value = '';
+
+        const sw = document.querySelector('.search-wrapper'), ab = document.getElementById('advSearchBtn'), as = document.getElementById('advancedSearch');
+        if (tab === 'profile') { if (sw) sw.style.display = 'none'; if (ab) ab.style.display = 'none'; if (as) as.style.display = 'none'; }
+        else { if (sw) sw.style.display = 'block'; if (ab) ab.style.display = 'flex'; }
+
+        if (tab === 'history') {
+            const h = historyList || [], sh = JSON.parse(localStorage.getItem('panzz_searchHistory') || '[]');
+            grid.innerHTML = `<div style="grid-column:1/-1;"><input type="text" id="historySearchInput" placeholder="Cari history..." style="width:100%;padding:11px;border:1px solid var(--border);border-radius:8px;margin-bottom:14px;font-size:13px;background:var(--panel);color:var(--text);" oninput="filterHistory()" /><div id="historyDownloadList"><h4 class="section-label">${icn('download',11)} Download</h4><ul class="history-list">${h.length===0?'<li>Kosong</li>':h.slice(0,20).map(x=>`<li><span>${x.action}: ${x.detail}</span><span>${x.time}</span></li>`).join('')}</ul></div><h4 class="section-label" style="margin-top:18px;">${icn('search',11)} Pencarian</h4><ul class="history-list">${sh.length===0?'<li>Kosong</li>':sh.slice(0,20).map(x=>`<li><span>${x.query}</span><span>${x.time}</span></li>`).join('')}</ul></div>`;
+            return;
+        }
+        if (tab === 'profile') {
+            const sp = localStorage.getItem('panzz_pic_'+(currentUser?.username||'')), pic = sp || 'https://placehold.co/96/1a1d24/39d67e?text=%F0%9F%91%A4';
+            let p = `<div class="no-result" style="grid-column:1/-1;padding:20px 10px;"><div style="margin-bottom:14px;"><input type="text" id="searchUserInput" placeholder="Cari username..." style="width:100%;padding:11px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--panel);color:var(--text);" onkeydown="if(event.key==='Enter')searchUser()" /><button class="card-btn dl" style="margin-top:8px;" onclick="searchUser()">${icn('search')} Cari User</button></div><div id="profileContent"><img src="${pic}" class="profile-pic" id="profilePicPreview" /><h3 style="margin-top:12px;font-size:16px;font-weight:700;color:var(--text);">${currentUser?.username||'Guest'}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${getTitle()}</p>`;
+            if (isLoggedIn()) {
+                p += `<p style="margin-top:10px;"><button class="card-btn dl" onclick="openModal('add')">+ Tambah Add-on</button></p>`;
+                p += `<p><button class="card-btn edit" onclick="toggleEditProfile()">${icn('pencil')} Edit Profile</button></p>`;
+                p += `<div id="editProfileSection" style="display:none;text-align:left;margin-top:16px;">
+                    <div class="profile-block"><div style="display:flex;align-items:center;gap:12px;"><img id="editProfilePicPreview" src="${pic}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;border:2px solid var(--emerald);" /><div><div class="row-title">Foto Profil</div><label style="font-size:11px;color:var(--diamond);cursor:pointer;margin-top:2px;display:inline-block;font-weight:600;">${icn('camera')} Pilih Foto<input type="file" id="profilePicInput" accept="image/*" onchange="updateProfilePic()" style="display:none;" /></label></div></div></div>
+                    <div class="profile-block"><div class="row-title">${icn('user',12)} Ganti Username</div><div style="display:flex;gap:8px;"><input type="text" id="editUsername" placeholder="Username baru" style="flex:1;" /><button class="card-btn edit" onclick="changeUsername()" style="width:auto;padding:10px 16px;white-space:nowrap;margin-top:0;">Simpan</button></div><small style="margin-top:4px;">Maksimal 1x setiap 24 jam</small></div>
+                    <div class="profile-block"><div class="row-title">${icn('lock',12)} Ganti Password</div><input type="password" id="editOldPass" placeholder="Password lama" /><input type="password" id="editNewPass" placeholder="Password baru" /><input type="password" id="editConfirmPass" placeholder="Konfirmasi password baru" /><button class="card-btn save" onclick="changePassword()">Ganti Password</button></div>
+                </div>`;
+                p += `<p><button class="card-btn delete" onclick="toggleDeleteAccount()">${icn('trash')} Delete Account</button></p>`;
+                p += `<div id="deleteAccountSection" style="display:none;text-align:left;margin-top:10px;" class="profile-block"><small>${icn('alert',11)} Masukkan password untuk konfirmasi</small><input type="password" id="deletePass" placeholder="Password" /><button class="card-btn delete" onclick="deleteAccount()">Hapus Akun</button></div>`;
+                p += `<p><button class="card-btn delete" onclick="logout()">Logout</button></p>`;
+            } else {
+                p += `<p style="margin-top:10px;"><button class="card-btn dl" onclick="openModal('signin')">Sign In</button></p><p><button class="card-btn edit" onclick="openModal('signup')">Sign Up</button></p>`;
+            }
+            p += `</div></div>`; grid.innerHTML = p; return;
+        }
+        renderGrid();
+    }
+
+    function filterHistory() { const q = document.getElementById('historySearchInput').value.toLowerCase(), h = historyList || [], filtered = q ? h.filter(x => (x.detail||'').toLowerCase().includes(q) || (x.action||'').toLowerCase().includes(q)) : h; document.getElementById('historyDownloadList').innerHTML = `<h4 class="section-label">${icn('download',11)} Download</h4><ul class="history-list">${filtered.length===0?'<li>Tidak ditemukan</li>':filtered.slice(0,20).map(x=>`<li><span>${x.action}: ${x.detail}</span><span>${x.time}</span></li>`).join('')}</ul>`; }
+    function toggleEditProfile() { const s = document.getElementById('editProfileSection'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
+    function toggleDeleteAccount() { const s = document.getElementById('deleteAccountSection'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
+    function updateProfilePic() { const file = document.getElementById('profilePicInput').files[0]; if (!file) return; const r = new FileReader(); r.onload = e => { localStorage.setItem('panzz_pic_'+currentUser.username, e.target.result); const pp = document.getElementById('profilePicPreview'); if (pp) pp.src = e.target.result; const ep = document.getElementById('editProfilePicPreview'); if (ep) ep.src = e.target.result; updateUI(); }; r.readAsDataURL(file); }
+    function changeUsername() {
+        if (!isLoggedIn()) return; const newUser = document.getElementById('editUsername').value.trim();
+        if (!newUser) return alert('Masukkan username baru!'); if (users[newUser]) return alert('Username sudah dipakai!');
+        const last = parseInt(localStorage.getItem('panzz_username_change_'+currentUser.username)||'0');
+        if (Date.now()-last < 86400000) { alert('1x/24 jam!'); return; }
+        users[newUser] = { pass: currentUser.pass }; delete users[currentUser.username]; if (dbReady) db.ref('users').set(users);
+        localStorage.setItem('panzz_username_change_'+newUser, Date.now().toString());
+        currentUser.username = newUser; toast('Username diganti!', 'ok'); updateUI();
+    }
+    function changePassword() {
+        const old = document.getElementById('editOldPass').value.trim(), n = document.getElementById('editNewPass').value.trim(), c = document.getElementById('editConfirmPass').value.trim();
+        if (!old||!n||!c) return alert('Isi semua!'); if (old !== currentUser.pass) return alert('Password lama salah!'); if (n !== c) return alert('Password baru tidak cocok!');
+        users[currentUser.username].pass = n; if (dbReady) db.ref('users').set(users); currentUser.pass = n; toast('Password diganti!', 'ok'); updateUI();
+    }
+    function deleteAccount() {
+        const pass = document.getElementById('deletePass').value.trim(); if (pass !== currentUser.pass) return alert('Password salah!'); if (!confirm('Yakin hapus akun?')) return;
+        delete users[currentUser.username]; addons = addons.filter(a => a.author !== currentUser.username); if (dbReady) { db.ref('users').set(users); db.ref('addons').set(addons); }
+        savedAddons = savedAddons.filter(a => a.savedBy !== currentUser.username); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
+        currentUser = null; toast('Akun dihapus!', 'ok'); updateUI();
+    }
+    function searchUser() {
+        const q = document.getElementById('searchUserInput').value.trim(); if (!q) return alert('Masukkan username!'); if (!users[q]) return alert('Username tidak ditemukan!');
+        const sp = localStorage.getItem('panzz_pic_'+q), pic = sp || 'https://placehold.co/96/1a1d24/39d67e?text=%F0%9F%91%A4', ua = addons.filter(a => a.author === q), td = ua.reduce((s,a) => s + (a.links||[]).length, 0);
+        const iA = ADMIN_PASSWORDS.includes(users[q].pass), iC = (q === CREATOR_USERNAME && users[q].pass === CREATOR_PASSWORD);
+        let html = `<img src="${pic}" class="profile-pic" /><h3 style="font-size:16px;font-weight:700;">${q}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${iC?'Creator':iA?'Admin':'User'}</p><p style="font-size:12px;color:var(--text2);margin-top:6px;">${icn('box',11)} ${ua.length} add-on &nbsp; ${icn('download',11)} ${td} download</p>`;
+        if (isCreator() && !iC) html += `<p style="margin-top:10px;"><button class="card-btn delete" onclick="deleteUserAccount('${q}')">${icn('trash')} Hapus Akun Ini</button></p>`;
+        document.getElementById('profileContent').innerHTML = html;
+    }
+    function deleteUserAccount(username) {
+        if (!isCreator() || username === CREATOR_USERNAME) return; if (!confirm('Yakin hapus '+username+'?')) return;
+        delete users[username]; addons = addons.filter(a => a.author !== username); if (dbReady) { db.ref('users').set(users); db.ref('addons').set(addons); }
+        savedAddons = savedAddons.filter(a => a.savedBy !== username); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
+        toast('Akun '+username+' dihapus!', 'ok'); document.getElementById('profileContent').innerHTML = '<p>Akun telah dihapus.</p>';
+    }
+
+    function updateUI() {
+        if (isLoggedIn()) {
+            const sp = localStorage.getItem('panzz_pic_'+currentUser.username);
+            document.getElementById('authBtns').innerHTML = `<div class="user-chip">${sp?`<img src="${sp}" class="profile-pic-small" />`:''}<span>${currentUser.username}</span>${getTitle()!=='User'?`<span class="role-tag">${getTitle()==='Creator'?icn('crown',10)+' CREATOR':icn('shield',10)+' ADMIN'}</span>`:''}</div>`;
+        } else {
+            document.getElementById('authBtns').innerHTML = `<button class="auth-btn" onclick="openModal('signin')">Sign In</button><button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>`;
+        }
+        switchTab(currentTab);
+    }
+
+    updateUI();
+</script>
+</body>
+</html>
