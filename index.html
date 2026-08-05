@@ -44,7 +44,7 @@
     ::-webkit-scrollbar{width:8px;height:8px;}
     ::-webkit-scrollbar-thumb{background:var(--border-hi); border-radius:4px;}
 
-    /* ---------- isometric cube brand mark ---------- */
+    /* ---------- isometric cube (dipakai di empty state) ---------- */
     .cube{width:22px;height:20px;position:relative;flex-shrink:0;}
     .cube i{position:absolute; width:11px; height:12px;}
     .cube .top{top:0;left:0; background:var(--emerald); clip-path:polygon(50% 0,100% 25%,50% 50%,0 25%); width:22px; height:12px;}
@@ -126,6 +126,7 @@
             inset -1px -1px 0 rgba(0,0,0,.4);
         overflow:hidden; opacity:0; animation:fadeInUp .45s ease forwards;
         transition:box-shadow .15s ease, transform .12s ease;
+        display:flex; flex-direction:column; height:100%; cursor:pointer;
     }
     .card:hover{
         transform:translateY(-2px);
@@ -135,16 +136,25 @@
     .card:nth-child(1){animation-delay:.03s}.card:nth-child(2){animation-delay:.07s}.card:nth-child(3){animation-delay:.11s}
     .card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.19s}.card:nth-child(6){animation-delay:.23s}
     .card:nth-child(n+7){animation-delay:.26s}
-    .card-img{width:100%; aspect-ratio:16/9; object-fit:cover; background:linear-gradient(135deg,#1c2b22,#182022); display:block;}
-    .card-body{padding:12px 13px 13px;}
+    .card-img{width:100%; aspect-ratio:16/9; object-fit:cover; background:linear-gradient(135deg,#1c2b22,#182022); display:block; flex-shrink:0;}
+    .card-body{padding:12px 13px 13px; flex:1; display:flex; flex-direction:column;}
+    .card-text{height:124px; overflow:hidden;}
+    .card-actions{}
     .card-author{font-size:10px; color:var(--diamond); font-weight:600; margin-bottom:4px; font-family:var(--font-mono);}
-    .card-title{font-size:13.5px; font-weight:700; margin-bottom:6px; line-height:1.3; color:var(--text);}
+    .card-title{
+        font-size:13.5px; font-weight:700; margin-bottom:6px; line-height:1.3; color:var(--text);
+        display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis;
+    }
     .card-tag{
         display:inline-block; background:rgba(57,214,126,.12); color:var(--emerald);
         font-size:9.5px; font-weight:700; letter-spacing:.4px; padding:3px 8px; border-radius:5px;
         margin-bottom:7px; border:1px solid rgba(57,214,126,.25); font-family:var(--font-mono);
     }
-    .card-desc{font-size:11.5px; color:var(--text2); margin-bottom:8px; line-height:1.5;}
+    .card-desc{
+        font-size:11.5px; color:var(--text2); margin-bottom:8px; line-height:1.5;
+        display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+        overflow:hidden; text-overflow:ellipsis;
+    }
     .card-btn{
         display:block; width:100%; padding:10px; color:#08110c; border:none; border-radius:7px;
         font-size:12px; font-weight:700; cursor:pointer; text-align:center; margin-top:6px;
@@ -158,6 +168,8 @@
     .card-btn.delete{background:var(--redstone); color:#2a0808; box-shadow:0 2px 0 var(--redstone-dk);}
     .card-btn.save{background:var(--amber); box-shadow:0 2px 0 var(--amber-dk);}
     .card-btn:active{box-shadow:none; transform:translateY(2px) scale(.98);}
+    .card-dl-row{display:flex; gap:6px; margin-top:6px;}
+    .card-dl-row .card-btn{margin-top:0; padding:10px 4px;}
     .card-count{
         font-size:10px; color:var(--text3); text-align:center; margin-top:9px; padding-top:9px;
         border-top:1px dashed var(--border); font-family:var(--font-mono);
@@ -215,6 +227,14 @@
     .modal-box button:active{transform:scale(.97);}
     .btn-green{background:var(--emerald); box-shadow:0 2px 0 var(--emerald-dk);}
     .btn-gray{background:var(--panel-hi); color:var(--text2); box-shadow:0 2px 0 #0c0d10; border:1px solid var(--border);}
+
+    /* ---------- inspect modal (perbesar addon) ---------- */
+    .inspect-box{max-width:420px; padding:0; overflow:hidden; max-height:88vh; display:flex; flex-direction:column;}
+    .inspect-img-wrap{position:relative; flex-shrink:0;}
+    .inspect-img{width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:linear-gradient(135deg,#1c2b22,#182022);}
+    .inspect-body{padding:16px 18px 20px; overflow-y:auto;}
+    .inspect-title{font-size:16px; font-weight:800; margin:6px 0 8px; color:var(--text); line-height:1.3;}
+    .inspect-desc{font-size:12.5px; color:var(--text2); line-height:1.7; margin:10px 0 16px; white-space:pre-wrap;}
 
     .no-result{text-align:center; padding:70px 20px; color:var(--text3); grid-column:1/-1; font-size:13px;}
     .no-result .cube{margin:0 auto 14px;}
@@ -320,6 +340,21 @@
             </select>
             <button class="btn-green" id="addBtn" onclick="saveAddon()">Tambah</button>
             <button class="btn-gray" onclick="closeModal('addModal')">Batal</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="inspectModal" onclick="closeModal('inspectModal')">
+        <div class="modal-box inspect-box">
+            <div class="inspect-img-wrap">
+                <img id="inspectImg" class="inspect-img" src="" />
+            </div>
+            <div class="inspect-body">
+                <div class="card-author" id="inspectAuthor"></div>
+                <h3 id="inspectTitle" class="inspect-title"></h3>
+                <span class="card-tag" id="inspectTag"></span>
+                <p class="inspect-desc" id="inspectDesc"></p>
+                <div id="inspectDownloads"></div>
+            </div>
         </div>
     </div>
 
@@ -512,13 +547,29 @@
         let cards = '';
         list.forEach((a,i) => {
             const idx = addons.indexOf(a);
-            const links = (a.links||[]).map((l,j) => `<button class="card-btn dl" onclick="downloadAddon('${l}','${a.name}',event)">${icn('download')} Download ${a.links.length>1?j+1:''}</button>`).join('');
-            const saveBtn = (!isAdmin() && !isCreator() && isLoggedIn() && currentTab !== 'my') ? `<button class="card-btn save" onclick="saveForUser(${idx})">${icn('bookmark')} Simpan</button>` : '';
-            const removeBtn = (!isAdmin() && !isCreator() && currentTab === 'my') ? `<button class="card-btn delete" onclick="removeSaved(${i})">Hapus</button>` : '';
-            const adminBtns = (isCreator()) ? `<button class="card-btn edit" onclick="openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="deleteAddon(${idx})">Hapus</button>` : (isAdmin() && currentTab === 'my') ? `<button class="card-btn edit" onclick="openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="deleteAddon(${idx})">Hapus</button>` : '';
-            cards += `<div class="card">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span><div class="card-desc">${a.desc||''}</div>${links}${saveBtn}${removeBtn}${adminBtns}<div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div>`;
+            const links = !a.links || !a.links.length ? '' : a.links.length === 1
+                ? `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${a.links[0]}','${a.name}',event)">${icn('download')} Download</button>`
+                : `<div class="card-dl-row">${a.links.map((l,j) => `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${l}','${a.name}',event)">${icn('download')} ${j+1}</button>`).join('')}</div>`;
+            const saveBtn = (!isAdmin() && !isCreator() && isLoggedIn() && currentTab !== 'my') ? `<button class="card-btn save" onclick="event.stopPropagation();saveForUser(${idx})">${icn('bookmark')} Simpan</button>` : '';
+            const removeBtn = (!isAdmin() && !isCreator() && currentTab === 'my') ? `<button class="card-btn delete" onclick="event.stopPropagation();removeSaved(${i})">Hapus</button>` : '';
+            const adminBtns = (isCreator()) ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon(${idx})">Hapus</button>` : (isAdmin() && currentTab === 'my') ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon(${idx})">Hapus</button>` : '';
+            cards += `<div class="card" onclick="openInspect(${idx})">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-text"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span><div class="card-desc">${a.desc||''}</div></div><div class="card-actions">${links}${saveBtn}${removeBtn}${adminBtns}<div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div></div>`;
         });
         grid.innerHTML += cards;
+    }
+
+    function openInspect(i) {
+        const a = addons[i]; if (!a) return;
+        document.getElementById('inspectImg').src = a.image || '';
+        document.getElementById('inspectAuthor').innerHTML = `${icn('user',11)} ${a.author||'Anonim'}`;
+        document.getElementById('inspectTitle').textContent = a.name;
+        document.getElementById('inspectTag').textContent = a.tag || 'Add-on';
+        document.getElementById('inspectDesc').textContent = a.desc && a.desc.trim() ? a.desc : '(Tidak ada deskripsi)';
+        const links = !a.links || !a.links.length ? '' : a.links.length === 1
+            ? `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${a.links[0]}','${a.name}',event)">${icn('download')} Download</button>`
+            : `<div class="card-dl-row">${a.links.map((l,j) => `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${l}','${a.name}',event)">${icn('download')} ${j+1}</button>`).join('')}</div>`;
+        document.getElementById('inspectDownloads').innerHTML = links;
+        document.getElementById('inspectModal').classList.add('show');
     }
 
     function switchTab(tab) {
