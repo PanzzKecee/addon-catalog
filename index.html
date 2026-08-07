@@ -60,13 +60,22 @@
         padding:16px 18px 14px; position:sticky; top:0; z-index:30;
         backdrop-filter:blur(10px);
     }
-    .header-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-    .brand{display:flex; align-items:center; gap:11px;}
+    .header-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px;}
+    .brand{display:flex; align-items:center; gap:11px; min-width:0;}
     .brand h1{
         font-family:var(--font-body); font-weight:800; font-size:14px; letter-spacing:-.2px;
         color:var(--text); line-height:1.25;
     }
     .brand h1 span{color:var(--emerald); display:block;}
+    .header-actions{display:flex; align-items:center; gap:7px; flex-shrink:0;}
+    .channel-btn{
+        width:32px; height:32px; border-radius:8px; flex-shrink:0; color:#fff;
+        background:#25D366; border:1px solid #1da851;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 0 #1a9c4a;
+        display:flex; align-items:center; justify-content:center;
+        transition:transform .08s ease, box-shadow .08s ease; text-decoration:none;
+    }
+    .channel-btn:active{transform:translateY(2px); box-shadow:none;}
     .auth-btns{display:flex; gap:8px; align-items:center;}
     .auth-btn{
         padding:8px 14px; font-family:var(--font-body); font-weight:700; font-size:11px;
@@ -77,8 +86,9 @@
     }
     .auth-btn.signup{background:var(--diamond); border-color:var(--diamond-dk); box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 0 var(--diamond-dk);}
     .auth-btn:active{transform:translateY(2px); box-shadow:none;}
-    .user-chip{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--text);}
-    .user-chip .role-tag{font-size:9px; font-family:var(--font-mono); font-weight:700; padding:2px 6px; border-radius:4px; background:var(--panel-hi); color:var(--amber); border:1px solid var(--border-hi);}
+    .user-chip{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--text); min-width:0;}
+    .user-chip span:not(.role-tag){overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80px;}
+    .user-chip .role-tag{font-size:9px; font-family:var(--font-mono); font-weight:700; padding:2px 6px; border-radius:4px; background:var(--panel-hi); color:var(--amber); border:1px solid var(--border-hi); flex-shrink:0;}
 
     .search-wrapper{position:relative; max-width:560px; margin:0 auto;}
     .search-wrapper input{
@@ -227,6 +237,16 @@
     .modal-box button:active{transform:scale(.97);}
     .btn-green{background:var(--emerald); box-shadow:0 2px 0 var(--emerald-dk);}
     .btn-gray{background:var(--panel-hi); color:var(--text2); box-shadow:0 2px 0 #0c0d10; border:1px solid var(--border);}
+    .btn-google{
+        width:100%; padding:11px; border-radius:7px; font-size:13px; font-weight:700; cursor:pointer;
+        margin-top:6px; font-family:var(--font-body); background:#fff; color:#1f1f1f; border:1px solid #dadce0;
+        box-shadow:0 2px 0 #c8c9cc; display:flex; align-items:center; justify-content:center; gap:10px;
+        transition:transform .08s;
+    }
+    .btn-google:active{transform:scale(.97);}
+    .btn-google:disabled{opacity:.7; cursor:default;}
+    .auth-divider{display:flex; align-items:center; gap:10px; margin:14px 0 4px; color:var(--text3); font-size:11px;}
+    .auth-divider::before, .auth-divider::after{content:''; flex:1; height:1px; background:var(--border);}
 
     /* ---------- inspect modal (perbesar addon) ---------- */
     .inspect-box{max-width:420px; padding:0; overflow:hidden; max-height:88vh; display:flex; flex-direction:column;}
@@ -248,7 +268,7 @@
     h4.section-label{font-family:var(--font-mono); font-size:11px; letter-spacing:.5px; color:var(--text3); margin:16px 0 8px; text-transform:uppercase;}
 
     .profile-pic{width:96px; height:96px; border-radius:14px; object-fit:cover; border:2px solid var(--border-hi); margin:0 auto 12px; display:block; background:var(--panel-hi);}
-    .profile-pic-small{width:28px; height:28px; border-radius:7px; object-fit:cover; border:1px solid var(--border-hi); vertical-align:middle;}
+    .profile-pic-small{width:28px; height:28px; border-radius:7px; object-fit:cover; border:1px solid var(--border-hi); vertical-align:middle; flex-shrink:0;}
 
     .profile-block{background:var(--panel); padding:14px; border-radius:10px; margin-bottom:10px; border:1px solid var(--border); text-align:left;}
     .profile-block .row-title{font-size:12.5px; font-weight:700; margin-bottom:8px; color:var(--text);}
@@ -276,9 +296,14 @@
                 <div class="cube"><i class="top"></i><i class="left"></i><i class="right"></i></div>
                 <h1>Panzz<br><span>Add-on</span></h1>
             </div>
-            <div id="authBtns">
-                <button class="auth-btn" onclick="openModal('signin')">Sign In</button>
-                <button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>
+            <div class="header-actions">
+                <a href="https://whatsapp.com/channel/0029Vb3inHL96H4UmVSaxG1d/139" target="_blank" rel="noopener noreferrer" class="channel-btn" aria-label="Saluran WhatsApp" title="Saluran WhatsApp">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-4 4v-4H4v-10z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>
+                </a>
+                <div id="authBtns">
+                    <button class="auth-btn" onclick="openModal('signin')">Sign In</button>
+                    <button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>
+                </div>
             </div>
         </div>
         <div class="search-wrapper">
@@ -315,6 +340,11 @@
     <div class="modal-overlay" id="authModal">
         <div class="modal-box">
             <h3 id="authTitle">Sign In</h3>
+            <button class="btn-google" id="googleBtn" onclick="loginWithGoogle()">
+                <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.4 0 6.4 1.2 8.8 3.5l6.5-6.5C35.3 2.5 30 0 24 0 14.6 0 6.5 5.4 2.5 13.2l7.6 5.9C12 13 17.5 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.4 5.7c4.3-4 6.8-9.9 6.8-17.4z"/><path fill="#FBBC05" d="M10.1 19.1a14.5 14.5 0 000 9.8l-7.6 5.9a24 24 0 010-21.6l7.6 5.9z"/><path fill="#34A853" d="M24 48c6 0 11.3-2 15.1-5.4l-7.4-5.7C29.6 38.1 27 39 24 39c-6.5 0-12-4.4-14-10.3l-7.6 5.9C6.5 42.6 14.6 48 24 48z"/></svg>
+                Login dengan Google
+            </button>
+            <div class="auth-divider"><span>atau pakai username</span></div>
             <input type="text" id="authUser" placeholder="Username" />
             <input type="password" id="authPass" placeholder="Password" />
             <button class="btn-green" onclick="handleAuth()">Sign In</button>
@@ -359,18 +389,23 @@
     </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
     // ---------- state (dideklarasikan PALING AWAL, sebelum apa pun yang bisa gagal) ----------
     // Ini sengaja ditaruh di atas: kalau skrip Firebase gagal dimuat (offline, adblock, CSP
     // preview, dll), variabel-variabel ini tetap terinisialisasi duluan sehingga semua tombol
     // (buka modal, ganti tab, dsb) tetap berfungsi normal walau sinkronisasi ke server gagal.
-    const CREATOR_USERNAME = "PanzzKeceeAbis", CREATOR_PASSWORD = "Panzz28072012";
-    const ADMIN_PASSWORDS = ["UserAdmin123/--_", CREATOR_PASSWORD];
+    // CATATAN KEAMANAN: tidak ada lagi password/role creator-admin ditulis di sini. Role
+    // (creator/admin) sekarang HANYA bisa di-set manual lewat Firebase Console oleh pemilik
+    // project, bukan lewat kode yang bisa dibaca siapapun via F12.
     let addons = [], savedAddons = [], currentTab = 'all', authMode = 'signin', currentUser = null, editIndex = -1;
-    let users = {}, historyList = [], downloadCounts = {};
-    let db = null, dbReady = false;
-    currentUser = JSON.parse(localStorage.getItem('panzz_user_simple') || 'null');
+    let historyList = [], downloadCounts = {};
+    let db = null, auth = null, dbReady = false, authReady = false;
+    // referensi elemen DOM diambil paling awal juga (aman, karena tag <script> ini ada di akhir
+    // <body> jadi elemen-elemennya sudah pasti ada) — supaya listener Firebase yang mungkin
+    // menembak lebih cepat dari dugaan tidak pernah nemu variabel ini belum siap.
+    const grid = document.getElementById('grid'), searchInput = document.getElementById('searchInput');
 
     // ---------- init Firebase (aman: kegagalan tidak menjatuhkan seluruh skrip) ----------
     try {
@@ -385,13 +420,31 @@
             appId: "1:968411076830:web:4b4dd0b969e9e65e718a4f"
         });
         db = firebase.database();
-        dbReady = true;
+        auth = firebase.auth();
+        dbReady = true; authReady = true;
     } catch (e) {
         console.error('Firebase gagal diinisialisasi:', e);
-        db = null; dbReady = false;
+        db = null; auth = null; dbReady = false; authReady = false;
     }
     // dipanggil setiap kali mau nulis/baca ke db supaya tidak melempar error kalau db tidak siap
     function withDb(fn) { if (!dbReady || !db) { toast('Offline: perubahan hanya tersimpan di perangkat ini', 'err'); return false; } fn(); return true; }
+
+    // username -> key aman (huruf kecil, alfanumerik + . _ -) dipakai sebagai id node & bagian email semu.
+    // Firebase Auth butuh format email, tapi usernya cuma isi Username biasa, jadi kita bikin
+    // "email semu" username@panzzaddon.app di belakang layar (tidak pernah dikirim ke mana-mana).
+    function usernameKey(u) { return (u || '').toLowerCase().trim().replace(/[^a-z0-9._-]/g, ''); }
+    function fakeEmail(key) { return key + '@panzzaddon.app'; }
+
+    function authErrorMsg(err) {
+        const c = err && err.code || '';
+        if (c === 'auth/wrong-password' || c === 'auth/invalid-credential' || c === 'auth/invalid-login-credentials') return 'Username atau password salah!';
+        if (c === 'auth/user-not-found') return 'Username tidak ditemukan!';
+        if (c === 'auth/email-already-in-use') return 'Username sudah dipakai!';
+        if (c === 'auth/weak-password') return 'Password minimal 6 karakter!';
+        if (c === 'auth/too-many-requests') return 'Terlalu banyak percobaan, coba lagi nanti.';
+        if (c === 'auth/network-request-failed') return 'Gagal konek ke server, cek koneksi internet.';
+        return 'Terjadi kesalahan: ' + (err && err.message ? err.message : String(err));
+    }
 
     // ---------- ikon SVG (pengganti emoji, konsisten di semua perangkat) ----------
     function icn(name, size) {
@@ -455,16 +508,38 @@
             }
             if (currentTab !== 'profile' && currentTab !== 'history') renderGrid();
         });
-        db.ref('users').on('value', s => { if (s.exists()) users = s.val(); });
         db.ref('downloadCounts').on('value', s => { if (s.exists()) downloadCounts = s.val(); });
+    }
+
+    // ---------- status login beneran dari Firebase Auth ----------
+    // currentUser baru terisi setelah Firebase mengonfirmasi sesi login yang sah (server-side),
+    // bukan dari localStorage yang bisa dipalsukan lewat F12.
+    async function refreshCurrentUserFromServer(user) {
+        let profile = null;
+        try {
+            const snap = await db.ref('users/' + user.uid).once('value');
+            profile = snap.exists() ? snap.val() : null;
+        } catch (e) { console.error(e); }
+        currentUser = { uid: user.uid, username: (profile && profile.username) || user.email.split('@')[0], role: (profile && profile.role) || 'user', email: user.email };
+        updateUI();
+    }
+    if (authReady) {
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                await refreshCurrentUserFromServer(user);
+            } else {
+                currentUser = null;
+                updateUI();
+            }
+        });
     }
 
     historyList = JSON.parse(localStorage.getItem('panzz_history') || '[]');
     savedAddons = JSON.parse(localStorage.getItem('panzz_saved') || '[]');
 
-    const isLoggedIn = () => !!currentUser;
-    function isAdmin() { return currentUser && ADMIN_PASSWORDS.includes(currentUser.pass) && !(currentUser.username === CREATOR_USERNAME && currentUser.pass === CREATOR_PASSWORD); }
-    function isCreator() { return currentUser && currentUser.username === CREATOR_USERNAME && currentUser.pass === CREATOR_PASSWORD; }
+    function isLoggedIn() { return !!currentUser; }
+    function isAdmin() { return !!(currentUser && currentUser.role === 'admin'); }
+    function isCreator() { return !!(currentUser && currentUser.role === 'creator'); }
     function getTitle() { if (isCreator()) return 'Creator'; if (isAdmin()) return 'Admin'; return 'User'; }
 
     function addHistory(action, detail) { historyList.unshift({ action, detail, time: new Date().toLocaleString() }); if (historyList.length > 50) historyList.pop(); localStorage.setItem('panzz_history', JSON.stringify(historyList)); }
@@ -475,6 +550,7 @@
         if (type === 'signin' || type === 'signup') {
             authMode = type;
             document.getElementById('authTitle').textContent = type === 'signin' ? 'Sign In' : 'Sign Up';
+            const btn = document.querySelector('#authModal .btn-green'); if (btn) btn.textContent = type === 'signin' ? 'Sign In' : 'Sign Up';
             document.getElementById('authModal').classList.add('show');
         } else if (type === 'add') {
             editIndex = -1;
@@ -490,17 +566,93 @@
         }
     }
     function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-    function toggleAuthMode() { authMode = authMode === 'signin' ? 'signup' : 'signin'; document.getElementById('authTitle').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up'; }
-    function handleAuth() {
+    function toggleAuthMode() { authMode = authMode === 'signin' ? 'signup' : 'signin'; document.getElementById('authTitle').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up'; const btn = document.querySelector('#authModal .btn-green'); if (btn) btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up'; }
+    function withTimeout(promise, ms) {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => { const e = new Error('Waktu tunggu habis'); e.code = 'app/timeout'; reject(e); }, ms))
+        ]);
+    }
+    async function handleAuth() {
         const u = document.getElementById('authUser').value.trim(), p = document.getElementById('authPass').value.trim();
         if (!u || !p) { alert('Isi semua!'); return; }
-        if (authMode === 'signup') { if (users[u]) { alert('Username sudah dipakai!'); return; } users[u] = { pass: p }; if (dbReady) db.ref('users/' + u).set({ pass: p }); toast('Akun dibuat!', 'ok'); toggleAuthMode(); return; }
-        if (!users[u] || users[u].pass !== p) { alert('Username atau password salah!'); return; }
-        currentUser = { username: u, pass: p };
-        localStorage.setItem('panzz_user_simple', JSON.stringify(currentUser));
-        closeModal('authModal'); toast('Selamat datang, ' + u + '!', 'ok'); updateUI();
+        if (!authReady) { alert('Offline: tidak bisa login/daftar sekarang.'); return; }
+        const key = usernameKey(u);
+        if (!key) { alert('Username tidak valid!'); return; }
+        const email = fakeEmail(key);
+        const btn = document.querySelector('#authModal .btn-green');
+        if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
+        try {
+            await withTimeout((async () => {
+                if (authMode === 'signup') {
+                    const taken = await db.ref('usernames/' + key).once('value');
+                    if (taken.exists()) { alert('Username sudah dipakai!'); return; }
+                    const cred = await auth.createUserWithEmailAndPassword(email, p);
+                    await db.ref('users/' + cred.user.uid).set({ username: u, email });
+                    await db.ref('usernames/' + key).set({ uid: cred.user.uid, email });
+                    await auth.signOut();
+                    toast('Akun dibuat! Silakan Sign In.', 'ok');
+                    toggleAuthMode();
+                    return;
+                }
+                // signin: cari email semu dari username dulu
+                const snap = await db.ref('usernames/' + key).once('value');
+                if (!snap.exists()) { alert('Username tidak ditemukan!'); return; }
+                await auth.signInWithEmailAndPassword(snap.val().email, p);
+                closeModal('authModal'); toast('Selamat datang, ' + u + '!', 'ok');
+            })(), 15000);
+        } catch (e) {
+            console.error(e);
+            if (e && e.code === 'app/timeout') alert('Gagal konek ke server (timeout). Pastikan sudah: 1) aktifkan Email/Password di Firebase Authentication, 2) paste Security Rules di Realtime Database. Lalu coba lagi.');
+            else alert(authErrorMsg(e));
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up'; }
+        }
     }
-    function logout() { currentUser = null; localStorage.removeItem('panzz_user_simple'); updateUI(); }
+    function logout() { if (authReady) auth.signOut(); else { currentUser = null; updateUI(); } }
+
+    async function loginWithGoogle() {
+        if (!authReady) { alert('Offline: tidak bisa login sekarang.'); return; }
+        const btn = document.getElementById('googleBtn');
+        const originalHTML = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = 'Memproses...'; }
+        try {
+            await withTimeout((async () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                const snap = await db.ref('users/' + user.uid).once('value');
+                if (!snap.exists()) {
+                    // profil baru dari akun Google -> bikin username dari nama Google-nya
+                    let base = usernameKey(user.displayName || user.email.split('@')[0]) || 'user';
+                    let key = base, n = 1;
+                    while ((await db.ref('usernames/' + key).once('value')).exists()) { key = base + n; n++; }
+                    await db.ref('users/' + user.uid).set({ username: user.displayName || user.email.split('@')[0], email: user.email, provider: 'google' });
+                    await db.ref('usernames/' + key).set({ uid: user.uid, email: user.email });
+                }
+                // Percobaan otomatis jadi creator/admin. Ini AMAN dibiarkan gagal diam-diam kalau
+                // bukan email yang berhak -- keputusan sebenarnya ada di Security Rules server
+                // (dicek dari email Google yang sudah diverifikasi), bukan dari kode ini.
+                try { await db.ref('users/' + user.uid + '/role').set('creator'); } catch (e) { console.error('Auto-role CREATOR ditolak untuk', user.email, '-', e && e.message); }
+                const rsnap = await db.ref('users/' + user.uid + '/role').once('value');
+                if (rsnap.val() !== 'creator') {
+                    try { await db.ref('users/' + user.uid + '/role').set('admin'); } catch (e) { console.error('Auto-role ADMIN ditolak untuk', user.email, '-', e && e.message); }
+                }
+                // refresh currentUser lewat fungsi terpusat SEBAGAI LANGKAH TERAKHIR -- ini penting
+                // supaya tidak ketiban listener onAuthStateChanged yang bisa jalan lebih dulu/barengan
+                // dan menimpa currentUser dengan data lama (race condition).
+                await refreshCurrentUserFromServer(user);
+                closeModal('authModal'); toast('Selamat datang!', 'ok');
+            })(), 20000);
+        } catch (e) {
+            console.error(e);
+            if (e && e.code === 'auth/popup-closed-by-user') { /* user membatalkan, diam saja */ }
+            else if (e && e.code === 'app/timeout') alert('Gagal konek ke server (timeout). Coba lagi.');
+            else alert(authErrorMsg(e));
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+        }
+    }
 
     function saveAddon() {
         const name = document.getElementById('addName').value.trim(), imgFile = document.getElementById('addImage').files[0];
@@ -526,7 +678,6 @@
         if (ev) { const r = ev.target.getBoundingClientRect(); burst(r.left + r.width/2, r.top + r.height/2, 'var(--emerald)'.includes('var') ? getComputedStyle(document.documentElement).getPropertyValue('--emerald') : '#39d67e'); }
         addCount(name); addHistory('Download', name); window.open(link, '_blank'); setTimeout(renderGrid, 500);
     }
-    const grid = document.getElementById('grid'), searchInput = document.getElementById('searchInput');
 
     function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHistory(q); renderGrid(); }
     function toggleAdvancedSearch() { const adv = document.getElementById('advancedSearch'), label = document.getElementById('advLabel'); if (adv.style.display === 'none' || adv.style.display === '') { adv.style.display = 'block'; if (label) label.textContent = 'Tutup'; } else { adv.style.display = 'none'; if (label) label.textContent = 'Filter'; document.getElementById('tagFilter').value = ''; renderGrid(); } }
@@ -614,39 +765,88 @@
     function toggleEditProfile() { const s = document.getElementById('editProfileSection'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
     function toggleDeleteAccount() { const s = document.getElementById('deleteAccountSection'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
     function updateProfilePic() { const file = document.getElementById('profilePicInput').files[0]; if (!file) return; const r = new FileReader(); r.onload = e => { localStorage.setItem('panzz_pic_'+currentUser.username, e.target.result); const pp = document.getElementById('profilePicPreview'); if (pp) pp.src = e.target.result; const ep = document.getElementById('editProfilePicPreview'); if (ep) ep.src = e.target.result; updateUI(); }; r.readAsDataURL(file); }
-    function changeUsername() {
-        if (!isLoggedIn()) return; const newUser = document.getElementById('editUsername').value.trim();
-        if (!newUser) return alert('Masukkan username baru!'); if (users[newUser]) return alert('Username sudah dipakai!');
-        const last = parseInt(localStorage.getItem('panzz_username_change_'+currentUser.username)||'0');
-        if (Date.now()-last < 86400000) { alert('1x/24 jam!'); return; }
-        users[newUser] = { pass: currentUser.pass }; delete users[currentUser.username]; if (dbReady) db.ref('users').set(users);
-        localStorage.setItem('panzz_username_change_'+newUser, Date.now().toString());
-        currentUser.username = newUser; toast('Username diganti!', 'ok'); updateUI();
+    async function changeUsername() {
+        if (!isLoggedIn() || !authReady) return; const newUser = document.getElementById('editUsername').value.trim();
+        if (!newUser) return alert('Masukkan username baru!');
+        const newKey = usernameKey(newUser); if (!newKey) return alert('Username tidak valid!');
+        const last = parseInt(localStorage.getItem('panzz_username_change_' + currentUser.uid) || '0');
+        if (Date.now() - last < 86400000) { alert('1x/24 jam!'); return; }
+        try {
+            await withTimeout((async () => {
+                const taken = await db.ref('usernames/' + newKey).once('value');
+                if (taken.exists()) return alert('Username sudah dipakai!');
+                const oldKey = usernameKey(currentUser.username);
+                await db.ref('users/' + currentUser.uid + '/username').set(newUser);
+                await db.ref('usernames/' + newKey).set({ uid: currentUser.uid, email: currentUser.email });
+                await db.ref('usernames/' + oldKey).remove();
+                localStorage.setItem('panzz_username_change_' + currentUser.uid, Date.now().toString());
+                currentUser.username = newUser; toast('Username diganti!', 'ok'); updateUI();
+            })(), 15000);
+        } catch (e) { console.error(e); alert(e && e.code === 'app/timeout' ? 'Gagal konek ke server (timeout). Coba lagi.' : authErrorMsg(e)); }
     }
-    function changePassword() {
+    async function changePassword() {
         const old = document.getElementById('editOldPass').value.trim(), n = document.getElementById('editNewPass').value.trim(), c = document.getElementById('editConfirmPass').value.trim();
-        if (!old||!n||!c) return alert('Isi semua!'); if (old !== currentUser.pass) return alert('Password lama salah!'); if (n !== c) return alert('Password baru tidak cocok!');
-        users[currentUser.username].pass = n; if (dbReady) db.ref('users').set(users); currentUser.pass = n; toast('Password diganti!', 'ok'); updateUI();
+        if (!old || !n || !c) return alert('Isi semua!'); if (n !== c) return alert('Password baru tidak cocok!');
+        if (n.length < 6) return alert('Password minimal 6 karakter!');
+        try {
+            await withTimeout((async () => {
+                const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, old);
+                await auth.currentUser.reauthenticateWithCredential(cred);
+                await auth.currentUser.updatePassword(n);
+                toast('Password diganti!', 'ok'); updateUI();
+            })(), 15000);
+        } catch (e) { console.error(e); alert(e && e.code === 'app/timeout' ? 'Gagal konek ke server (timeout). Coba lagi.' : authErrorMsg(e)); }
     }
-    function deleteAccount() {
-        const pass = document.getElementById('deletePass').value.trim(); if (pass !== currentUser.pass) return alert('Password salah!'); if (!confirm('Yakin hapus akun?')) return;
-        delete users[currentUser.username]; addons = addons.filter(a => a.author !== currentUser.username); if (dbReady) { db.ref('users').set(users); db.ref('addons').set(addons); }
-        savedAddons = savedAddons.filter(a => a.savedBy !== currentUser.username); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
-        currentUser = null; toast('Akun dihapus!', 'ok'); updateUI();
+    async function deleteAccount() {
+        const pass = document.getElementById('deletePass').value.trim(); if (!pass) return alert('Masukkan password!');
+        if (!confirm('Yakin hapus akun?')) return;
+        try {
+            await withTimeout((async () => {
+                const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, pass);
+                await auth.currentUser.reauthenticateWithCredential(cred);
+                const key = usernameKey(currentUser.username), uid = currentUser.uid, uname = currentUser.username;
+                await db.ref('usernames/' + key).remove();
+                await db.ref('users/' + uid).remove();
+                addons = addons.filter(a => a.author !== uname); await db.ref('addons').set(addons);
+                savedAddons = savedAddons.filter(a => a.savedBy !== uname); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
+                await auth.currentUser.delete();
+                toast('Akun dihapus!', 'ok');
+            })(), 15000);
+        } catch (e) { console.error(e); alert(e && e.code === 'app/timeout' ? 'Gagal konek ke server (timeout). Coba lagi.' : authErrorMsg(e)); }
     }
-    function searchUser() {
-        const q = document.getElementById('searchUserInput').value.trim(); if (!q) return alert('Masukkan username!'); if (!users[q]) return alert('Username tidak ditemukan!');
-        const sp = localStorage.getItem('panzz_pic_'+q), pic = sp || 'https://placehold.co/96/1a1d24/39d67e?text=%F0%9F%91%A4', ua = addons.filter(a => a.author === q), td = ua.reduce((s,a) => s + (a.links||[]).length, 0);
-        const iA = ADMIN_PASSWORDS.includes(users[q].pass), iC = (q === CREATOR_USERNAME && users[q].pass === CREATOR_PASSWORD);
-        let html = `<img src="${pic}" class="profile-pic" /><h3 style="font-size:16px;font-weight:700;">${q}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${iC?'Creator':iA?'Admin':'User'}</p><p style="font-size:12px;color:var(--text2);margin-top:6px;">${icn('box',11)} ${ua.length} add-on &nbsp; ${icn('download',11)} ${td} download</p>`;
-        if (isCreator() && !iC) html += `<p style="margin-top:10px;"><button class="card-btn delete" onclick="deleteUserAccount('${q}')">${icn('trash')} Hapus Akun Ini</button></p>`;
-        document.getElementById('profileContent').innerHTML = html;
+    async function searchUser() {
+        const q = document.getElementById('searchUserInput').value.trim(); if (!q) return alert('Masukkan username!');
+        if (!dbReady) return alert('Offline: tidak bisa mencari user sekarang.');
+        try {
+            await withTimeout((async () => {
+                const key = usernameKey(q);
+                const mapSnap = await db.ref('usernames/' + key).once('value');
+                if (!mapSnap.exists()) { alert('Username tidak ditemukan!'); return; }
+                const uid = mapSnap.val().uid;
+                const uSnap = await db.ref('users/' + uid).once('value');
+                const profile = uSnap.exists() ? uSnap.val() : {};
+                const uname = profile.username || q, role = profile.role || 'user';
+                const sp = localStorage.getItem('panzz_pic_' + uname), pic = sp || 'https://placehold.co/96/1a1d24/39d67e?text=%F0%9F%91%A4';
+                const ua = addons.filter(a => a.author === uname), td = ua.reduce((s, a) => s + (a.links || []).length, 0);
+                let html = `<img src="${pic}" class="profile-pic" /><h3 style="font-size:16px;font-weight:700;">${uname}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${role === 'creator' ? 'Creator' : role === 'admin' ? 'Admin' : 'User'}</p><p style="font-size:12px;color:var(--text2);margin-top:6px;">${icn('box',11)} ${ua.length} add-on &nbsp; ${icn('download',11)} ${td} download</p>`;
+                if (isCreator() && role !== 'creator') html += `<p style="margin-top:10px;"><button class="card-btn delete" onclick="deleteUserAccount('${uid}','${uname}')">${icn('trash')} Hapus Data Akun Ini</button></p>`;
+                document.getElementById('profileContent').innerHTML = html;
+            })(), 15000);
+        } catch (e) { console.error(e); alert(e && e.code === 'app/timeout' ? 'Gagal konek ke server (timeout). Coba lagi.' : authErrorMsg(e)); }
     }
-    function deleteUserAccount(username) {
-        if (!isCreator() || username === CREATOR_USERNAME) return; if (!confirm('Yakin hapus '+username+'?')) return;
-        delete users[username]; addons = addons.filter(a => a.author !== username); if (dbReady) { db.ref('users').set(users); db.ref('addons').set(addons); }
-        savedAddons = savedAddons.filter(a => a.savedBy !== username); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
-        toast('Akun '+username+' dihapus!', 'ok'); document.getElementById('profileContent').innerHTML = '<p>Akun telah dihapus.</p>';
+    async function deleteUserAccount(uid, uname) {
+        if (!isCreator()) return;
+        if (!confirm('Yakin hapus data akun ' + uname + '? (Catatan: ini menghapus data profil & addon-nya. Akun loginnya sendiri baru bisa dihapus total lewat Firebase Console karena batasan keamanan Firebase.)')) return;
+        try {
+            await withTimeout((async () => {
+                const key = usernameKey(uname);
+                await db.ref('usernames/' + key).remove();
+                await db.ref('users/' + uid).remove();
+                addons = addons.filter(a => a.author !== uname); await db.ref('addons').set(addons);
+                savedAddons = savedAddons.filter(a => a.savedBy !== uname); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
+                toast('Data akun ' + uname + ' dihapus!', 'ok'); document.getElementById('profileContent').innerHTML = '<p>Data akun telah dihapus.</p>';
+            })(), 15000);
+        } catch (e) { console.error(e); alert(e && e.code === 'app/timeout' ? 'Gagal konek ke server (timeout). Coba lagi.' : authErrorMsg(e)); }
     }
 
     function updateUI() {
