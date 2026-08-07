@@ -75,8 +75,15 @@
         text-shadow:0 1px 1.5px rgba(0,0,0,.3);
         box-shadow:0 6px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3);
         transition:transform .1s ease, box-shadow .1s ease;
+        animation:fabFloat 2.8s ease-in-out infinite;
     }
-    .channel-fab:active{transform:scale(.94); box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3);}
+    .channel-fab::before{
+        content:''; position:absolute; inset:0; border-radius:999px; background:#25D366;
+        z-index:-1; opacity:0; animation:fabPing 2.8s ease-out infinite;
+    }
+    .channel-fab:active{transform:scale(.94); box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3); animation-play-state:paused;}
+    @keyframes fabFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+    @keyframes fabPing{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.3);opacity:0}}
     .channel-fab svg{flex-shrink:0;}
     .auth-btns{display:flex; gap:8px; align-items:center;}
     .auth-btn{
@@ -423,6 +430,9 @@
         });
         db = firebase.database();
         auth = firebase.auth();
+        // paksa sesi login tersimpan permanen di perangkat (LOCAL) -- eksplisit, tidak
+        // bergantung pada default browser, supaya tidak ke-logout sendiri tiap buka tab baru.
+        try { auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch (e) { console.error('Gagal set persistence:', e); }
         dbReady = true; authReady = true;
     } catch (e) {
         console.error('Firebase gagal diinisialisasi:', e);
