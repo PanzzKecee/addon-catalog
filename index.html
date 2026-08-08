@@ -4,12 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panzz Add-on Minecraft</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#39d67e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Panzz Add-on">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2339d67e' width='100' height='100' rx='20'/><path fill='%231c9c58' d='M20 30h60v40H20z'/><path fill='%23fff' d='M30 40h15v20H30zM50 40h15v20H50zM70 40h10v20H70z'/>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
     :root{
-        --bg:#0c0e12; --bg-grid:#101319;
+        --bg:#0c0e12; --bg-alt:#15181f; --bg-grid:#101319;
         --panel:#1a1d24; --panel-hi:#20242c;
         --border:#2c313c; --border-hi:#3c4453;
         --text:#eceef2; --text2:#8a91a1; --text3:#565d6b;
@@ -23,6 +29,16 @@
         --radius-notch:10px;
         --font-body:'Inter', system-ui, sans-serif;
         --font-mono:'JetBrains Mono', monospace;
+    }
+    [data-theme="light"]{
+        --bg:#f2f4f7; --bg-alt:#e8ecf1; --bg-grid:#e8ecf1;
+        --panel:#ffffff; --panel-hi:#f7f9fc;
+        --border:#d0d7e0; --border-hi:#bcc4d0;
+        --text:#1d2129; --text2:#5c6573; --text3:#8a94a3;
+        --emerald:#28a745; --emerald-dk:#1e7e34; --emerald-glow:rgba(40,167,69,.35);
+        --diamond:#0d6efd; --diamond-dk:#0b5ed7;
+        --amber:#fd7e14; --amber-dk:#e86c00;
+        --redstone:#dc3545; --redstone-dk:#bb2d3b;
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     html{scroll-behavior:smooth;}
@@ -40,7 +56,7 @@
         -webkit-mask-image:radial-gradient(ellipse 100% 60% at 50% 0%,#000 0%,transparent 75%);
         mask-image:radial-gradient(ellipse 100% 60% at 50% 0%,#000 0%,transparent 75%);
     }
-    ::selection{background:var(--emerald); color:#08110c;}
+    ::selection{background:var(--emerald); color:var(--bg);}
     ::-webkit-scrollbar{width:8px;height:8px;}
     ::-webkit-scrollbar-thumb{background:var(--border-hi); border-radius:4px;}
 
@@ -49,13 +65,13 @@
     .cube i{position:absolute; width:11px; height:12px;}
     .cube .top{top:0;left:0; background:var(--emerald); clip-path:polygon(50% 0,100% 25%,50% 50%,0 25%); width:22px; height:12px;}
     .cube .left{bottom:0;left:0; background:var(--emerald-dk); clip-path:polygon(0 0,50% 25%,50% 100%,0 75%); width:11px; height:16px;}
-    .cube .right{bottom:0;right:0; background:#0f7a45; clip-path:polygon(50% 25%,100% 0,100% 75%,50% 100%); width:11px; height:16px;}
+    .cube .right{bottom:0;right:0; background:var(--emerald-dk); clip-path:polygon(50% 25%,100% 0,100% 75%,50% 100%); width:11px; height:16px;}
     .cube.spin{animation:cubespin 1.1s linear infinite;}
     @keyframes cubespin{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.06) rotate(3deg)}}
 
     /* ---------- header ---------- */
     .header{
-        background:linear-gradient(180deg,#15181f,#101216 90%);
+        background:linear-gradient(180deg,var(--bg-alt, #15181f),var(--bg, #101216) 90%);
         border-bottom:1px solid var(--border);
         padding:16px 18px 14px; position:sticky; top:0; z-index:30;
         backdrop-filter:blur(10px);
@@ -81,14 +97,15 @@
         content:''; position:absolute; inset:0; border-radius:999px; background:#25D366;
         z-index:-1; opacity:0; animation:fabPing 2.8s ease-out infinite;
     }
-    .channel-fab:active{transform:scale(.94); box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3); animation-play-state:paused;}
+    .channel-fab:active{transform:scale(.9); box-shadow:0 2px 6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.4); animation:fabPress .12s ease, fabFloat 2.8s ease-in-out infinite;}
+    @keyframes fabPress{0%{transform:scale(1); box-shadow:0 6px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3)} 50%{transform:scale(.88); box-shadow:0 2px 4px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.5)} 100%{transform:scale(.9); box-shadow:0 2px 6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.4)}}
     @keyframes fabFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
     @keyframes fabPing{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(1.3);opacity:0}}
     .channel-fab svg{flex-shrink:0;}
     .auth-btns{display:flex; gap:8px; align-items:center;}
     .auth-btn{
         padding:8px 14px; font-family:var(--font-body); font-weight:700; font-size:11px;
-        letter-spacing:.3px; cursor:pointer; border-radius:7px; color:#08110c;
+        letter-spacing:.3px; cursor:pointer; border-radius:7px; color:var(--bg);
         background:var(--emerald); border:1px solid var(--emerald-dk);
         box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 2px 0 var(--emerald-dk);
         transition:transform .08s ease, box-shadow .08s ease;
@@ -132,8 +149,11 @@
 
     /* ---------- layout ---------- */
     .container{max-width:900px; margin:0 auto; padding:18px 16px; position:relative; z-index:1;}
-    .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
-    @media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr);}}
+    .grid{display:flex; flex-wrap:wrap; justify-content:center; gap:14px;}
+    .card{width:calc(50% - 7px);}
+    @media(min-width:640px){
+      .card{width:calc((100% - 28px) / 3); max-width:280px;}
+    }
 
     /* ---------- slot card (signature element) ---------- */
     .card{
@@ -155,7 +175,7 @@
     .card:nth-child(1){animation-delay:.03s}.card:nth-child(2){animation-delay:.07s}.card:nth-child(3){animation-delay:.11s}
     .card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.19s}.card:nth-child(6){animation-delay:.23s}
     .card:nth-child(n+7){animation-delay:.26s}
-    .card-img{width:100%; aspect-ratio:16/9; object-fit:cover; background:linear-gradient(135deg,#1c2b22,#182022); display:block; flex-shrink:0;}
+    .card-img{width:100%; aspect-ratio:16/9; object-fit:cover; background:linear-gradient(135deg,var(--bg-alt),var(--bg-grid)); display:block; flex-shrink:0;}
     .card-body{padding:12px 13px 13px; flex:1; display:flex; flex-direction:column;}
     .card-text{height:124px; overflow:hidden;}
     .card-actions{}
@@ -175,7 +195,7 @@
         overflow:hidden; text-overflow:ellipsis;
     }
     .card-btn{
-        display:block; width:100%; padding:10px; color:#08110c; border:none; border-radius:7px;
+        display:block; width:100%; padding:10px; color:var(--bg); border:none; border-radius:7px;
         font-size:12px; font-weight:700; cursor:pointer; text-align:center; margin-top:6px;
         font-family:var(--font-body); letter-spacing:.2px; position:relative; overflow:hidden;
         transition:transform .08s ease, filter .1s ease;
@@ -184,7 +204,7 @@
     .card-btn:active{transform:scale(.96);}
     .card-btn.dl{background:var(--emerald); box-shadow:0 2px 0 var(--emerald-dk);}
     .card-btn.edit{background:var(--diamond); box-shadow:0 2px 0 var(--diamond-dk);}
-    .card-btn.delete{background:var(--redstone); color:#2a0808; box-shadow:0 2px 0 var(--redstone-dk);}
+    .card-btn.delete{background:var(--redstone); color:var(--bg); box-shadow:0 2px 0 var(--redstone-dk);}
     .card-btn.save{background:var(--amber); box-shadow:0 2px 0 var(--amber-dk);}
     .card-btn:active{box-shadow:none; transform:translateY(2px) scale(.98);}
     .card-dl-row{display:flex; gap:6px; margin-top:6px;}
@@ -200,7 +220,7 @@
     /* ---------- bottom nav (hotbar) ---------- */
     .navbar{
         position:fixed; bottom:0; left:0; right:0; z-index:100;
-        background:linear-gradient(0deg,#101216,#15181f 90%);
+        background:linear-gradient(0deg,var(--bg),var(--bg-alt) 90%);
         border-top:1px solid var(--border);
         display:flex; justify-content:center; gap:6px;
         padding:10px 10px calc(10px + env(safe-area-inset-bottom));
@@ -240,12 +260,12 @@
     .modal-box input::placeholder, .modal-box textarea::placeholder{color:var(--text3);}
     .modal-box small{color:var(--text3); font-size:10px; display:block; margin:-2px 0 6px 2px;}
     .modal-box button{
-        width:100%; padding:11px; color:#08110c; border:none; border-radius:7px; font-size:13px;
+        width:100%; padding:11px; color:var(--bg); border:none; border-radius:7px; font-size:13px;
         font-weight:700; cursor:pointer; margin-top:7px; font-family:var(--font-body); transition:transform .08s;
     }
     .modal-box button:active{transform:scale(.97);}
     .btn-green{background:var(--emerald); box-shadow:0 2px 0 var(--emerald-dk);}
-    .btn-gray{background:var(--panel-hi); color:var(--text2); box-shadow:0 2px 0 #0c0d10; border:1px solid var(--border);}
+    .btn-gray{background:var(--panel-hi); color:var(--text2); box-shadow:0 2px 0 var(--bg); border:1px solid var(--border);}
     .btn-google{
         width:100%; padding:11px; border-radius:7px; font-size:13px; font-weight:700; cursor:pointer;
         margin-top:6px; font-family:var(--font-body); background:#fff; color:#1f1f1f; border:1px solid #dadce0;
@@ -260,12 +280,12 @@
     /* ---------- inspect modal (perbesar addon) ---------- */
     .inspect-box{max-width:420px; padding:0; overflow:hidden; max-height:88vh; display:flex; flex-direction:column;}
     .inspect-img-wrap{position:relative; flex-shrink:0;}
-    .inspect-img{width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:linear-gradient(135deg,#1c2b22,#182022);}
+    .inspect-img{width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:linear-gradient(135deg,var(--bg-alt),var(--bg-grid));}
     .inspect-body{padding:16px 18px 20px; overflow-y:auto;}
     .inspect-title{font-size:16px; font-weight:800; margin:6px 0 8px; color:var(--text); line-height:1.3;}
     .inspect-desc{font-size:12.5px; color:var(--text2); line-height:1.7; margin:10px 0 16px; white-space:pre-wrap;}
 
-    .no-result{text-align:center; padding:70px 20px; color:var(--text3); grid-column:1/-1; font-size:13px;}
+    .no-result{text-align:center; padding:70px 20px; color:var(--text3); width:100%; font-size:13px;}
     .no-result .cube{margin:0 auto 14px;}
 
     .history-list{list-style:none; padding:0;}
@@ -283,7 +303,7 @@
     .profile-block .row-title{font-size:12.5px; font-weight:700; margin-bottom:8px; color:var(--text);}
     .profile-block small{color:var(--text3); font-size:10px;}
 
-    /* ---------- toast ---------- */
+/* ---------- toast ---------- */
     #toastHost{position:fixed; left:0; right:0; bottom:88px; z-index:500; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none;}
     .toast{
         background:var(--panel); border:1px solid var(--border-hi); color:var(--text); font-size:12.5px;
@@ -294,9 +314,52 @@
     .toast.ok{border-color:var(--emerald);}
     @keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
     @keyframes toastOut{to{opacity:0;transform:translateY(-6px) scale(.97)}}
+
+    /* ---------- skeleton loading ---------- */
+    .skeleton{background:linear-gradient(90deg,var(--panel-hi) 25%,var(--border) 50%,var(--panel-hi) 75%); background-size:200% 100%; animation:shimmer 1.2s ease-in-out infinite;}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .sk-card{height:260px; border-radius:var(--radius-notch); clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);}
+    .sk-img{height:120px;}
+    .sk-title{height:20px; margin:12px 13px 6px; border-radius:4px;}
+    .sk-desc{height:12px; margin:0 13px 8px; border-radius:4px;}
+    .sk-meta{height:14px; margin:8px 13px; border-radius:4px;}
+
+    /* ---------- focus-visible ---------- */
+    :focus:not(:focus-visible){outline:none;}
+    :focus-visible{outline:2px solid var(--emerald); outline-offset:2px;}
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--emerald); outline-offset:2px;}
+
+    /* ---------- theme toggle ---------- */
+    .theme-toggle{background:var(--panel); border:1px solid var(--border); color:var(--text); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:border-color .15s, background .15s;}
+    .theme-toggle:hover{border-color:var(--emerald); background:var(--panel-hi);}
+    .theme-toggle:active{transform:scale(.95);}
+
+    /* ---------- share / copy btn ---------- */
+    .share-btn{background:var(--panel); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:var(--font-body); transition:border-color .15s, background .15s;}
+    .share-btn:hover{border-color:var(--emerald); background:var(--panel-hi);}
+
+    /* ---------- skip link (a11y) ---------- */
+    .skip-link{position:absolute; top:-100%; left:16px; background:var(--emerald); color:var(--bg); padding:10px 16px; border-radius:6px; font-weight:700; z-index:1000; transition:top .2s;}
+    .skip-link:focus{top:16px;}
+
+    /* ---------- PWA install prompt ---------- */
+    .install-banner{position:fixed; bottom:100px; left:16px; right:16px; max-width:400px; margin:0 auto; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 8px 32px rgba(0,0,0,.4); z-index:150; animation:slideUp .3s ease; display:none;}
+    .install-banner.show{display:block;}
+    .install-banner p{font-size:13px; color:var(--text2); margin-bottom:12px;}
+    .install-banner .btn-row{display:flex; gap:8px;}
+    .install-banner .btn-row button{flex:1;}
+
+    /* ---------- reduced motion ---------- */
+    @media (prefers-reduced-motion: reduce){
+        *, *::before, *::after{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important;}
+    }
+
+    /* ---------- print ---------- */
+    @media print{.header,.navbar,.channel-fab,.modal-overlay,#toastHost,.skip-link{display:none !important;} body{background:var(--bg); color:var(--text);} .card{break-inside:avoid; box-shadow:none; border:1px solid var(--border);}}
 </style>
 </head>
 <body>
+    <a href="#grid" class="skip-link">Langsung ke konten</a>
     <div id="toastHost"></div>
 
     <div class="header">
@@ -309,9 +372,10 @@
                 <button class="auth-btn" onclick="openModal('signin')">Sign In</button>
                 <button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>
             </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle tema" title="Ganti tema">🌙</button>
         </div>
         <div class="search-wrapper">
-            <input type="text" id="searchInput" placeholder="Cari add-on, texture, world..." oninput="searchAddons()" />
+            <input type="search" id="searchInput" placeholder="Cari add-on, texture, world..." aria-label="Cari add-on" autocomplete="off" oninput="searchAddons()" />
             <span class="search-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.35-4.35"/></svg></span>
         </div>
         <button id="advSearchBtn" onclick="toggleAdvancedSearch()">
@@ -330,7 +394,7 @@
     </div>
 
     <div class="container">
-        <div class="grid" id="grid"></div>
+        <div class="grid" id="grid" role="list"></div>
     </div>
 
     <a href="https://whatsapp.com/channel/0029Vb3inHL96H4UmVSaxG1d/139" target="_blank" rel="noopener noreferrer" class="channel-fab" aria-label="Saluran WhatsApp" title="Saluran WhatsApp">
@@ -339,11 +403,19 @@
     </a>
 
     <div class="navbar">
-        <div class="nav-item active" onclick="switchTab('all')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></svg></span>All</div>
-        <div class="nav-item" onclick="switchTab('recent')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l3 2"/></svg></span>Terbaru</div>
-        <div class="nav-item" onclick="switchTab('history')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg></span>History</div>
-        <div class="nav-item" onclick="switchTab('my')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></span>Addon Saya</div>
-        <div class="nav-item" onclick="switchTab('profile')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg></span>Profile</div>
+        <div class="nav-item active" onclick="switchTab('all')" role="button" tabindex="0" aria-label="Semua" onkeydown="if(event.key==='Enter'||event.key===' ')switchTab('all')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></svg></span>All</div>
+        <div class="nav-item" onclick="switchTab('recent')" role="button" tabindex="0" aria-label="Terbaru" onkeydown="if(event.key==='Enter'||event.key===' ')switchTab('recent')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l3 2"/></svg></span>Terbaru</div>
+        <div class="nav-item" onclick="switchTab('history')" role="button" tabindex="0" aria-label="History" onkeydown="if(event.key==='Enter'||event.key===' ')switchTab('history')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg></span>History</div>
+        <div class="nav-item" onclick="switchTab('my')" role="button" tabindex="0" aria-label="Addon Saya" onkeydown="if(event.key==='Enter'||event.key===' ')switchTab('my')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></span>Addon Saya</div>
+        <div class="nav-item" onclick="switchTab('profile')" role="button" tabindex="0" aria-label="Profile" onkeydown="if(event.key==='Enter'||event.key===' ')switchTab('profile')"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg></span>Profile</div>
+    </div>
+
+    <div class="install-banner" id="installBanner" role="dialog" aria-label="Install app">
+        <p>Install Panzz Add-on untuk akses cepat offline & notifikasi.</p>
+        <div class="btn-row">
+            <button class="btn-green" id="installBtn">${icn('download',14)} Install</button>
+            <button class="btn-gray" id="dismissInstallBtn">Nanti</button>
+        </div>
     </div>
 
     <div class="modal-overlay" id="authModal">
@@ -476,10 +548,118 @@
             lock: `<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`,
             alert: `<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/>`,
             trash: `<path d="M5 7h14"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M7 7l1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"/>`,
-            crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
-            shield: `<path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/>`
+crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
+            shield: `<path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/>`,
+            share: `<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M4 12l6-6 6 6"/><path d="M8 12v8"/><path d="M16 12v8"/>`,
+            copy: `<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>`,
+            sun: `<circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/>`,
+            moon: `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`
         };
         return `<svg ${common}>${paths[name] || ''}</svg>`;
+    }
+
+    // ---------- theme toggle ----------
+    function initTheme() {
+        const saved = localStorage.getItem('panzz_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        updateThemeIcon(saved);
+    }
+    function updateThemeIcon(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (btn) btn.innerHTML = theme === 'dark' ? icn('moon', 18) : icn('sun', 18);
+    }
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('panzz_theme', next);
+        updateThemeIcon(next);
+    }
+
+    // ---------- native share ----------
+    async function shareAddon(addon) {
+        const data = {
+            title: addon.name,
+            text: addon.desc || 'Cek addon ini!',
+            url: window.location.href
+        };
+        if (navigator.share && isSecureContext()) {
+            try {
+                await navigator.share(data);
+            } catch (e) {
+                if (e.name !== 'AbortError') copyAddonLink(addon);
+            }
+        } else {
+            copyAddonLink(addon);
+        }
+    }
+    function isSecureContext() {
+        return window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    }
+    function copyAddonLink(addon) {
+        const url = window.location.href;
+        if (navigator.clipboard && isSecureContext()) {
+            navigator.clipboard.writeText(url).then(() => toast('Link disalin!', 'ok')).catch(() => fallbackCopy(url));
+        } else {
+            fallbackCopy(url);
+        }
+    }
+    function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); toast('Link disalin!', 'ok'); } catch { toast('Gagal salin link', 'err'); }
+        ta.remove();
+    }
+
+    // ---------- PWA install ----------
+    let deferredPrompt;
+    function initPWA() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(() => {
+                const banner = document.getElementById('installBanner');
+                if (banner && !localStorage.getItem('panzz_install_dismissed')) {
+                    banner.classList.add('show');
+                }
+            }, 15000);
+        });
+        document.getElementById('installBtn')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    toast('Terima kasih sudah install!', 'ok');
+                }
+                deferredPrompt = null;
+                document.getElementById('installBanner').classList.remove('show');
+            }
+        });
+        document.getElementById('dismissInstallBtn')?.addEventListener('click', () => {
+            document.getElementById('installBanner').classList.remove('show');
+            localStorage.setItem('panzz_install_dismissed', '1');
+        });
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+    }
+
+    // ---------- skeleton rendering ----------
+    function renderSkeleton(count = 6) {
+        grid.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const sk = document.createElement('div');
+            sk.className = 'card skeleton sk-card';
+            sk.setAttribute('aria-hidden', 'true');
+            sk.innerHTML = `
+                <div class="skeleton sk-img"></div>
+                <div class="skeleton sk-title"></div>
+                <div class="skeleton sk-desc"></div>
+                <div class="skeleton sk-meta"></div>
+            `;
+            grid.appendChild(sk);
+        }
     }
 
     // ---------- toast helper (pengganti alert supaya lebih halus, perilaku sama) ----------
@@ -691,17 +871,28 @@
         addCount(name); addHistory('Download', name); window.open(link, '_blank'); setTimeout(renderGrid, 500);
     }
 
-    function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHistory(q); renderGrid(); }
+function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHistory(q); renderGrid(); }
     function toggleAdvancedSearch() { const adv = document.getElementById('advancedSearch'), label = document.getElementById('advLabel'); if (adv.style.display === 'none' || adv.style.display === '') { adv.style.display = 'block'; if (label) label.textContent = 'Tutup'; } else { adv.style.display = 'none'; if (label) label.textContent = 'Filter'; document.getElementById('tagFilter').value = ''; renderGrid(); } }
 
     function renderGrid() {
+        if (!dbReady) {
+            renderSkeleton();
+            return;
+        }
+        renderSkeleton();
+        // small delay to show skeleton, then render actual
+        setTimeout(() => {
+            _renderGridActual();
+        }, 400);
+    }
+    function _renderGridActual() {
         grid.innerHTML = '';
         const f = searchInput.value.toLowerCase(), tagF = document.getElementById('tagFilter')?.value || '';
         let list = [...addons];
         if (currentTab === 'recent') list = list.slice(0,5);
         if (currentTab === 'my') {
             if (!isLoggedIn()) { grid.innerHTML = '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Login dulu.</div>'; return; }
-            if (isAdmin() || isCreator()) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;margin-bottom:12px;"><button class="card-btn save" style="width:auto;padding:10px 20px;" onclick="openModal(\'add\')">+ Tambah Add-on</button></div>';
+            if (isAdmin() || isCreator()) grid.innerHTML = '<div style="width:100%;text-align:center;margin-bottom:12px;"><button class="card-btn save" style="width:auto;padding:10px 20px;" onclick="openModal(\'add\')">+ Tambah Add-on</button></div>';
             list = (isAdmin() || isCreator()) ? addons.filter(a => a.author === currentUser.username) : savedAddons.filter(a => a.savedBy === currentUser.username);
         }
         if (f) list = list.filter(a => a.name.toLowerCase().includes(f) || (a.desc||'').toLowerCase().includes(f));
@@ -716,9 +907,37 @@
             const saveBtn = (!isAdmin() && !isCreator() && isLoggedIn() && currentTab !== 'my') ? `<button class="card-btn save" onclick="event.stopPropagation();saveForUser(${idx})">${icn('bookmark')} Simpan</button>` : '';
             const removeBtn = (!isAdmin() && !isCreator() && currentTab === 'my') ? `<button class="card-btn delete" onclick="event.stopPropagation();removeSaved(${i})">Hapus</button>` : '';
             const adminBtns = (isCreator()) ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon(${idx})">Hapus</button>` : (isAdmin() && currentTab === 'my') ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon(${idx})">Hapus</button>` : '';
-            cards += `<div class="card" onclick="openInspect(${idx})">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-text"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span><div class="card-desc">${a.desc||''}</div></div><div class="card-actions">${links}${saveBtn}${removeBtn}${adminBtns}<div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div></div>`;
+            cards += `<div class="card" data-idx="${idx}">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-text"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span><div class="card-desc">${a.desc||''}</div></div><div class="card-actions">${links}${saveBtn}${removeBtn}${adminBtns}<button class="share-btn" data-action="share" data-idx="${idx}">${icn('share',12)} Share</button><button class="share-btn" data-action="copy" data-idx="${idx}">${icn('copy',12)} Copy</button><div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div></div>`;
         });
         grid.innerHTML += cards;
+    if (!grid.dataset.listenerAdded) {
+        grid.addEventListener('click', (e) => {
+            const card = e.target.closest('.card[data-idx]');
+            if (card && !e.target.closest('button, a')) {
+                openInspect(parseInt(card.dataset.idx, 10));
+            }
+            const btn = e.target.closest('.share-btn[data-action]');
+            if (btn) {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.idx, 10);
+                const a = addons[idx];
+                if (!a) return;
+                if (btn.dataset.action === 'share') shareAddon(a);
+                else if (btn.dataset.action === 'copy') copyAddonLink(a);
+            }
+        });
+        grid.dataset.listenerAdded = '1';
+    }
+    }
+    function renderGrid() {
+        if (!dbReady) {
+            renderSkeleton();
+            return;
+        }
+        renderSkeleton();
+        setTimeout(() => {
+            _renderGridActual();
+        }, 400);
     }
 
     function openInspect(i) {
@@ -731,7 +950,11 @@
         const links = !a.links || !a.links.length ? '' : a.links.length === 1
             ? `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${a.links[0]}','${a.name}',event)">${icn('download')} Download</button>`
             : `<div class="card-dl-row">${a.links.map((l,j) => `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${l}','${a.name}',event)">${icn('download')} ${j+1}</button>`).join('')}</div>`;
-        document.getElementById('inspectDownloads').innerHTML = links;
+        const shareCopy = `<div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="share-btn" data-action="share" data-idx="${addons.indexOf(a)}">${icn('share',12)} Share</button>
+            <button class="share-btn" data-action="copy" data-idx="${addons.indexOf(a)}">${icn('copy',12)} Copy</button>
+        </div>`;
+        document.getElementById('inspectDownloads').innerHTML = links + shareCopy;
         document.getElementById('inspectModal').classList.add('show');
     }
 
@@ -748,12 +971,12 @@
 
         if (tab === 'history') {
             const h = historyList || [], sh = JSON.parse(localStorage.getItem('panzz_searchHistory') || '[]');
-            grid.innerHTML = `<div style="grid-column:1/-1;"><input type="text" id="historySearchInput" placeholder="Cari history..." style="width:100%;padding:11px;border:1px solid var(--border);border-radius:8px;margin-bottom:14px;font-size:13px;background:var(--panel);color:var(--text);" oninput="filterHistory()" /><div id="historyDownloadList"><h4 class="section-label">${icn('download',11)} Download</h4><ul class="history-list">${h.length===0?'<li>Kosong</li>':h.slice(0,20).map(x=>`<li><span>${x.action}: ${x.detail}</span><span>${x.time}</span></li>`).join('')}</ul></div><h4 class="section-label" style="margin-top:18px;">${icn('search',11)} Pencarian</h4><ul class="history-list">${sh.length===0?'<li>Kosong</li>':sh.slice(0,20).map(x=>`<li><span>${x.query}</span><span>${x.time}</span></li>`).join('')}</ul></div>`;
+            grid.innerHTML = `<div style="width:100%;"><input type="text" id="historySearchInput" placeholder="Cari history..." style="width:100%;padding:11px;border:1px solid var(--border);border-radius:8px;margin-bottom:14px;font-size:13px;background:var(--panel);color:var(--text);" oninput="filterHistory()" /><div id="historyDownloadList"><h4 class="section-label">${icn('download',11)} Download</h4><ul class="history-list">${h.length===0?'<li>Kosong</li>':h.slice(0,20).map(x=>`<li><span>${x.action}: ${x.detail}</span><span>${x.time}</span></li>`).join('')}</ul></div><h4 class="section-label" style="margin-top:18px;">${icn('search',11)} Pencarian</h4><ul class="history-list">${sh.length===0?'<li>Kosong</li>':sh.slice(0,20).map(x=>`<li><span>${x.query}</span><span>${x.time}</span></li>`).join('')}</ul></div>`;
             return;
         }
         if (tab === 'profile') {
             const sp = localStorage.getItem('panzz_pic_'+(currentUser?.username||'')), pic = sp || 'https://placehold.co/96/1a1d24/39d67e?text=%F0%9F%91%A4';
-            let p = `<div class="no-result" style="grid-column:1/-1;padding:20px 10px;"><div style="margin-bottom:14px;"><input type="text" id="searchUserInput" placeholder="Cari username..." style="width:100%;padding:11px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--panel);color:var(--text);" onkeydown="if(event.key==='Enter')searchUser()" /><button class="card-btn dl" style="margin-top:8px;" onclick="searchUser()">${icn('search')} Cari User</button></div><div id="profileContent"><img src="${pic}" class="profile-pic" id="profilePicPreview" /><h3 style="margin-top:12px;font-size:16px;font-weight:700;color:var(--text);">${currentUser?.username||'Guest'}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${getTitle()}</p>`;
+            let p = `<div class="no-result" style="width:100%;padding:20px 10px;"><div style="margin-bottom:14px;"><input type="text" id="searchUserInput" placeholder="Cari username..." style="width:100%;padding:11px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--panel);color:var(--text);" onkeydown="if(event.key==='Enter')searchUser()" /><button class="card-btn dl" style="margin-top:8px;" onclick="searchUser()">${icn('search')} Cari User</button></div><div id="profileContent"><img src="${pic}" class="profile-pic" id="profilePicPreview" /><h3 style="margin-top:12px;font-size:16px;font-weight:700;color:var(--text);">${currentUser?.username||'Guest'}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${getTitle()}</p>`;
             if (isLoggedIn()) {
                 p += `<p style="margin-top:10px;"><button class="card-btn dl" onclick="openModal('add')">+ Tambah Add-on</button></p>`;
                 p += `<p><button class="card-btn edit" onclick="toggleEditProfile()">${icn('pencil')} Edit Profile</button></p>`;
@@ -868,10 +1091,24 @@
         } else {
             document.getElementById('authBtns').innerHTML = `<button class="auth-btn" onclick="openModal('signin')">Sign In</button><button class="auth-btn signup" onclick="openModal('signup')">Sign Up</button>`;
         }
+        document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
         switchTab(currentTab);
     }
 
     updateUI();
+    initTheme();
+    initPWA();
+    document.getElementById('inspectModal')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.share-btn[data-action]');
+        if (btn) {
+            e.stopPropagation();
+            const idx = parseInt(btn.dataset.idx, 10);
+            const a = addons[idx];
+            if (!a) return;
+            if (btn.dataset.action === 'share') shareAddon(a);
+            else if (btn.dataset.action === 'copy') copyAddonLink(a);
+        }
+    });
 </script>
 </body>
 </html>
