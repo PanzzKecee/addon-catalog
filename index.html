@@ -577,12 +577,35 @@ crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
     }
 
     // ---------- native share ----------
+    // Ubah data URL (base64) hasil upload thumbnail jadi Blob TANPA lewat network (fetch),
+    // supaya cepat dan tidak kena aturan CSP connect-src.
+    function dataURLtoBlob(dataUrl) {
+        const parts = dataUrl.split(',');
+        const mimeMatch = parts[0].match(/data:(.*?);base64/);
+        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        const bin = atob(parts[1]);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return new Blob([arr], { type: mime });
+    }
     async function shareAddon(addon) {
-        const data = {
+        const baseData = {
             title: addon.name,
             text: addon.desc || 'Cek addon ini!',
             url: window.location.href
         };
+        let data = baseData;
+        // coba sertakan foto addon-nya juga, kalau ada thumbnail & device/browsernya mendukung
+        if (addon.image && addon.image.startsWith('data:') && navigator.canShare) {
+            try {
+                const blob = dataURLtoBlob(addon.image);
+                const ext = (blob.type.split('/')[1] || 'jpg').split('+')[0];
+                const fileName = (addon.name || 'addon').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.' + ext;
+                const file = new File([blob], fileName, { type: blob.type });
+                const withFile = { ...baseData, files: [file] };
+                if (navigator.canShare(withFile)) data = withFile;
+            } catch (e) { console.error('Gagal siapkan foto buat share:', e); }
+        }
         if (navigator.share && isSecureContext()) {
             try {
                 await navigator.share(data);
@@ -876,7 +899,7 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
 
     function renderGrid() {
         if (!dbReady) {
-            renderSkeleton();
+            grid.innerHTML = '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Gagal konek ke server. Cek koneksi internet, lalu refresh halaman.</div>';
             return;
         }
         renderSkeleton();
@@ -1108,6 +1131,26 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
             if (btn.dataset.action === 'share') shareAddon(a);
             else if (btn.dataset.action === 'copy') copyAddonLink(a);
         }
+      // Bikin fungsi buat nampilin Pop-up Google bawaan
+function loginDenganGoogle() {
+  // Provider Google dari Firebase
+  var provider = new firebase.auth.GoogleAuthProvider();
+
+  // Ini yang bakal manggil pop-up asli Google di tengah layar
+  firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      var user = result.user;
+      console.log("Berhasil login, halo " + user.displayName);
+      
+      // Tutup modal HTML lu kalau udah berhasil milih akun
+      closeModal('signin'); 
+      closeModal('signup');
+    })
+    .catch((error) => {
+      console.error("Gagal login Google: ", error.message);
+      alert("Gagal login: " + error.message);
+    });
+}
     });
 </script>
 </body>
