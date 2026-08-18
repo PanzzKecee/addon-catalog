@@ -967,15 +967,16 @@ crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
         }
     }
     function openEditForm(id) {
-        if (!isCreator() && !isAdmin()) return;
         const a = addons.find(x => x.id === id); if (!a) return;
+        if (!isCreator() && !isAdmin() && a.author !== currentUser?.username) return;
         editIndex = id;
         document.getElementById('addModalTitle').textContent = 'Edit Add-on'; document.getElementById('addBtn').textContent = 'Simpan';
         document.getElementById('addName').value = a.name; document.getElementById('addLink1').value = (a.links&&a.links[0])||''; document.getElementById('addLink2').value = (a.links&&a.links[1])||''; document.getElementById('addDesc').value = a.desc||''; document.getElementById('addTag').value = a.tag||'';
         document.getElementById('addModal').classList.add('show');
     }
     function deleteAddon(id) {
-        if (!isCreator() && !isAdmin()) return; if (!confirm('Hapus?')) return;
+        const a = addons.find(x => x.id === id);
+        if (!isCreator() && !isAdmin() && (!a || a.author !== currentUser?.username)) return; if (!confirm('Hapus?')) return;
         if (dbReady) db.ref('addons/' + id).remove().catch(err => { console.error(err); toast('Gagal hapus: ' + (err.message||err.code), 'err'); });
         switchTab('my'); toast('Add-on dihapus', 'ok');
     }
@@ -1043,15 +1044,17 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
         const f = searchInput.value.toLowerCase(), tagF = document.getElementById('tagFilter')?.value || '';
         const isMod = isAdmin() || isCreator();
         let list = [...addons].filter(isApproved); // publik cuma lihat yang sudah disetujui
+        list.sort((a, b) => (b.date || 0) - (a.date || 0));
         if (currentTab === 'recent') list = list.slice(0,5);
         if (currentTab === 'my') {
             if (!isLoggedIn()) { grid.innerHTML = '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Login dulu.</div>'; return; }
             const addBtnLabel = isMod ? '+ Tambah Add-on' : '+ Ajukan Add-on';
             grid.innerHTML = `<div style="width:100%;text-align:center;margin-bottom:12px;"><button class="card-btn save" style="width:auto;padding:10px 20px;" onclick="openModal('add')">${addBtnLabel}</button></div>`;
-            list = isMod ? [...addons].filter(a => a.author === currentUser.username) : savedAddons.filter(a => a.savedBy === currentUser.username);
+            list = [...addons].filter(a => a.author === currentUser.username || a.authorUid === currentUser.uid);
         }
         if (f) list = list.filter(a => a.name.toLowerCase().includes(f) || (a.desc||'').toLowerCase().includes(f));
         if (tagF) list = list.filter(a => (a.tag||'') === tagF);
+        list.sort((a, b) => (b.date || 0) - (a.date || 0));
         if (!list.length) { grid.innerHTML += '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Kosong</div>'; return; }
         let cards = '';
         list.forEach((a,i) => {
@@ -1059,8 +1062,9 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
                 ? `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${a.links[0]}','${a.name}',event)">${icn('download')} Download</button>`
                 : `<div class="card-dl-row">${a.links.map((l,j) => `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${l}','${a.name}',event)">${icn('download')} ${j+1}</button>`).join('')}</div>`;
             const saveBtn = (!isMod && isLoggedIn() && currentTab !== 'my') ? `<button class="card-btn save" onclick="event.stopPropagation();saveForUser('${a.id}')">${icn('bookmark')} Simpan</button>` : '';
-            const removeBtn = (!isMod && currentTab === 'my') ? `<button class="card-btn delete" onclick="event.stopPropagation();removeSaved(${i})">Hapus</button>` : '';
-            const adminBtns = (isMod && (isCreator() || currentTab === 'my')) ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm('${a.id}')">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon('${a.id}')">Hapus</button>` : '';
+            const removeBtn = '';
+            const isOwner = currentTab === 'my' && isLoggedIn() && (a.author === currentUser?.username || a.authorUid === currentUser?.uid);
+            const adminBtns = (isMod && (isCreator() || currentTab === 'my')) || isOwner ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm('${a.id}')">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon('${a.id}')">Hapus</button>` : '';
             const pendingBadge = isPending(a) ? `<span class="card-tag" style="background:rgba(255,181,69,.15);color:var(--amber);border-color:rgba(255,181,69,.3);">Menunggu Persetujuan</span>` : '';
             cards += `<div class="card" data-id="${a.id}">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-text"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span>${pendingBadge}<div class="card-desc">${a.desc||''}</div></div><div class="card-actions">${links}${saveBtn}${removeBtn}${adminBtns}<button class="share-btn" data-action="share" data-id="${a.id}">${icn('share',12)} Share</button><button class="share-btn" data-action="copy" data-id="${a.id}">${icn('copy',12)} Copy</button><div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div></div>`;
         });
