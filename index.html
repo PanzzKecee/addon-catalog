@@ -288,6 +288,35 @@
     .no-result{text-align:center; padding:70px 20px; color:var(--text3); width:100%; font-size:13px;}
     .no-result .cube{margin:0 auto 14px;}
 
+    /* ---------- badge notifikasi jumlah pending ---------- */
+    .pending-badge{
+        position:absolute; top:-7px; right:-7px; background:var(--redstone); color:#2a0808;
+        font-size:10px; font-weight:800; min-width:18px; height:18px; border-radius:999px;
+        display:inline-flex; align-items:center; justify-content:center; padding:0 4px;
+        border:2px solid var(--panel); line-height:1;
+    }
+
+    /* ---------- modal persetujuan (mirip list permintaan pertemanan) ---------- */
+    .approval-box{max-width:400px; max-height:80vh; display:flex; flex-direction:column;}
+    .approval-list{overflow-y:auto; margin:10px 0; display:flex; flex-direction:column; gap:8px;}
+    .approval-row{
+        display:flex; align-items:center; gap:10px; background:var(--bg-alt); border:1px solid var(--border);
+        border-radius:10px; padding:9px 10px;
+    }
+    .approval-thumb{width:44px; height:44px; border-radius:8px; object-fit:cover; flex-shrink:0; background:linear-gradient(135deg,var(--bg-alt),var(--bg-grid)); border:1px solid var(--border);}
+    .approval-info{flex:1; min-width:0;}
+    .approval-name{font-size:12.5px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .approval-author{font-size:10.5px; color:var(--text3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .approval-actions{display:flex; gap:6px; flex-shrink:0;}
+    .approval-btn{
+        width:32px; height:32px; border-radius:999px; border:none; cursor:pointer; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center; transition:transform .1s ease;
+    }
+    .approval-btn:active{transform:scale(.88);}
+    .approval-btn.accept{background:var(--emerald); color:#08110c;}
+    .approval-btn.reject{background:var(--redstone); color:#2a0808;}
+    .approval-empty{text-align:center; padding:40px 10px; color:var(--text3); font-size:12.5px;}
+
     .history-list{list-style:none; padding:0;}
     .history-list li{
         background:var(--panel); padding:11px 13px; border-radius:8px; margin-bottom:7px; font-size:12px;
@@ -469,6 +498,14 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="approvalModal" onclick="if(event.target===this) closeModal('approvalModal')">
+        <div class="modal-box approval-box">
+            <h3>Persetujuan Add-on</h3>
+            <div class="approval-list" id="approvalList"></div>
+            <button class="btn-gray" onclick="closeModal('approvalModal')">Tutup</button>
+        </div>
+    </div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -553,7 +590,9 @@ crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
             share: `<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M4 12l6-6 6 6"/><path d="M8 12v8"/><path d="M16 12v8"/>`,
             copy: `<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>`,
             sun: `<circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/>`,
-            moon: `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`
+            moon: `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`,
+            check: `<path d="M4 12.5l5 5L20 6"/>`,
+            x: `<path d="M6 6l12 12M18 6L6 18"/>`
         };
         return `<svg ${common}>${paths[name] || ''}</svg>`;
     }
@@ -717,14 +756,18 @@ crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
         db.ref('addons').on('value', s => {
             if (s.exists()) {
                 const data = s.val();
-                addons = Array.isArray(data) ? data : Object.values(data);
+                addons = Object.keys(data).map(id => ({ id, ...data[id] }));
             } else {
                 addons = [];
             }
             if (currentTab !== 'profile' && currentTab !== 'history') renderGrid();
+            if (currentTab === 'profile') { const al = document.getElementById('approvalModal'); if (al && al.classList.contains('show')) renderApprovalList(); }
         });
         db.ref('downloadCounts').on('value', s => { if (s.exists()) downloadCounts = s.val(); });
     }
+    // data lama (sebelum fitur persetujuan) tidak punya field status -> anggap sudah approved
+    function isApproved(a) { return !a.status || a.status === 'approved'; }
+    function isPending(a) { return a.status === 'pending'; }
 
     // ---------- status login beneran dari Firebase Auth ----------
     // currentUser baru terisi setelah Firebase mengonfirmasi sesi login yang sah (server-side),
@@ -874,40 +917,106 @@ crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
         const link1 = document.getElementById('addLink1').value.trim(), link2 = document.getElementById('addLink2').value.trim();
         const desc = document.getElementById('addDesc').value.trim(), tag = document.getElementById('addTag').value;
         if (!name || !link1) { alert('Nama & Link wajib!'); return; }
+        if (!isLoggedIn()) { alert('Login dulu!'); return; }
         const btn = document.getElementById('addBtn');
         const originalBtnText = btn ? btn.textContent : '';
         if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+        const isMod = isCreator() || isAdmin();
+        const editingId = editIndex; // sekarang editIndex menyimpan id (string) addon yang diedit, bukan index array lagi
         function simpan(img) {
             const links = [link1]; if (link2) links.push(link2);
-            const entry = { name, image: img || '', links, desc, tag, author: editIndex >= 0 ? addons[editIndex].author : (currentUser?.username || 'anon'), date: Date.now() };
-            if (editIndex >= 0) addons[editIndex] = entry; else addons.unshift(entry);
-            if (dbReady) {
-                db.ref('addons').set(addons).catch(err => {
-                    console.error('Gagal simpan addon ke server:', err);
-                    toast('Gagal simpan ke server: ' + (err && (err.message || err.code) || 'coba lagi'), 'err');
-                });
-            }
-            closeModal('addModal'); switchTab('my'); addHistory(editIndex >= 0 ? 'Edit' : 'Tambah', name); toast(editIndex >= 0 ? 'Add-on diperbarui!' : 'Add-on ditambahkan!', 'ok'); editIndex = -1;
-            if (btn) { btn.disabled = false; btn.textContent = originalBtnText; }
+            const existing = editingId ? addons.find(a => a.id === editingId) : null;
+            const entry = {
+                name, image: img || '', links, desc, tag,
+                author: existing ? existing.author : (currentUser?.username || 'anon'),
+                authorUid: existing ? (existing.authorUid || currentUser?.uid || null) : (currentUser?.uid || null),
+                date: existing ? existing.date : Date.now(),
+                status: existing ? existing.status : (isMod ? 'approved' : 'pending')
+            };
+            if (!dbReady) { toast('Offline: tidak bisa menyimpan sekarang', 'err'); if (btn) { btn.disabled = false; btn.textContent = originalBtnText; } return; }
+            const ref = existing ? db.ref('addons/' + existing.id) : db.ref('addons').push();
+            ref.set(entry).then(() => {
+                closeModal('addModal'); switchTab('my');
+                addHistory(existing ? 'Edit' : 'Tambah', name);
+                toast(existing ? 'Add-on diperbarui!' : (isMod ? 'Add-on ditambahkan!' : 'Diajukan! Menunggu persetujuan admin.'), 'ok');
+            }).catch(err => {
+                console.error('Gagal simpan addon ke server:', err);
+                toast('Gagal simpan ke server: ' + (err && (err.message || err.code) || 'coba lagi'), 'err');
+            }).finally(() => {
+                editIndex = -1;
+                if (btn) { btn.disabled = false; btn.textContent = originalBtnText; }
+            });
         }
         if (imgFile) {
             const r = new FileReader();
             let done = false;
             // pengaman: kalau baca file macet (misalnya file gambar dari sumber yang udah gak valid
             // lagi), jangan biarin nyangkut selamanya -- lanjut simpan tanpa foto setelah 8 detik.
+            const existingImg = editingId ? (addons.find(a => a.id === editingId) || {}).image : '';
             const timeoutId = setTimeout(() => {
                 if (done) return; done = true;
                 toast('Gagal baca foto (coba pilih ulang), add-on disimpan tanpa foto dulu', 'err');
-                simpan(editIndex >= 0 ? addons[editIndex].image : '');
+                simpan(existingImg || '');
             }, 8000);
             r.onload = e => { if (done) return; done = true; clearTimeout(timeoutId); simpan(e.target.result); };
             r.onerror = () => { if (done) return; done = true; clearTimeout(timeoutId); toast('Gagal baca foto, coba pilih ulang', 'err'); if (btn) { btn.disabled = false; btn.textContent = originalBtnText; } };
             r.readAsDataURL(imgFile);
-        } else simpan(editIndex >= 0 ? addons[editIndex].image : '');
+        } else {
+            const existingImg = editingId ? (addons.find(a => a.id === editingId) || {}).image : '';
+            simpan(existingImg || '');
+        }
     }
-    function openEditForm(i) { if (!isCreator()) return; const a = addons[i]; editIndex = i; document.getElementById('addModalTitle').textContent = 'Edit Add-on'; document.getElementById('addBtn').textContent = 'Simpan'; document.getElementById('addName').value = a.name; document.getElementById('addLink1').value = (a.links&&a.links[0])||''; document.getElementById('addLink2').value = (a.links&&a.links[1])||''; document.getElementById('addDesc').value = a.desc||''; document.getElementById('addTag').value = a.tag||''; document.getElementById('addModal').classList.add('show'); }
-    function deleteAddon(i) { if (!isCreator()) return; if (!confirm('Hapus?')) return; addons.splice(i,1); if (dbReady) db.ref('addons').set(addons); switchTab('my'); toast('Add-on dihapus', 'ok'); }
-    function saveForUser(i) { if (!isLoggedIn()) { alert('Login dulu!'); return; } const a = addons[i]; if (savedAddons.find(s => s.name === a.name && s.links[0] === a.links[0])) { alert('Sudah disimpan!'); return; } savedAddons.unshift({ ...a, savedBy: currentUser.username, savedDate: Date.now() }); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); toast('Tersimpan!', 'ok'); switchTab(currentTab); }
+    function openEditForm(id) {
+        if (!isCreator() && !isAdmin()) return;
+        const a = addons.find(x => x.id === id); if (!a) return;
+        editIndex = id;
+        document.getElementById('addModalTitle').textContent = 'Edit Add-on'; document.getElementById('addBtn').textContent = 'Simpan';
+        document.getElementById('addName').value = a.name; document.getElementById('addLink1').value = (a.links&&a.links[0])||''; document.getElementById('addLink2').value = (a.links&&a.links[1])||''; document.getElementById('addDesc').value = a.desc||''; document.getElementById('addTag').value = a.tag||'';
+        document.getElementById('addModal').classList.add('show');
+    }
+    function deleteAddon(id) {
+        if (!isCreator() && !isAdmin()) return; if (!confirm('Hapus?')) return;
+        if (dbReady) db.ref('addons/' + id).remove().catch(err => { console.error(err); toast('Gagal hapus: ' + (err.message||err.code), 'err'); });
+        switchTab('my'); toast('Add-on dihapus', 'ok');
+    }
+    function approveAddon(id) {
+        if (!isCreator() && !isAdmin()) return;
+        if (!dbReady) { toast('Offline, coba lagi', 'err'); return; }
+        db.ref('addons/' + id + '/status').set('approved').then(() => {
+            toast('Add-on disetujui!', 'ok'); renderApprovalList();
+        }).catch(err => { console.error(err); toast('Gagal menyetujui: ' + (err.message||err.code), 'err'); });
+    }
+    function rejectAddon(id) {
+        if (!isCreator() && !isAdmin()) return;
+        if (!dbReady) { toast('Offline, coba lagi', 'err'); return; }
+        db.ref('addons/' + id).remove().then(() => {
+            toast('Add-on ditolak', 'ok'); renderApprovalList();
+        }).catch(err => { console.error(err); toast('Gagal menolak: ' + (err.message||err.code), 'err'); });
+    }
+    function openApprovalModal() {
+        if (!isCreator() && !isAdmin()) return;
+        renderApprovalList();
+        document.getElementById('approvalModal').classList.add('show');
+    }
+    function renderApprovalList() {
+        const wrap = document.getElementById('approvalList'); if (!wrap) return;
+        const pending = addons.filter(isPending);
+        if (!pending.length) { wrap.innerHTML = '<div class="approval-empty">Tidak ada add-on yang perlu disetujui.</div>'; return; }
+        wrap.innerHTML = pending.map(a => `
+            <div class="approval-row">
+                ${a.image ? `<img class="approval-thumb" src="${a.image}" />` : `<div class="approval-thumb"></div>`}
+                <div class="approval-info">
+                    <div class="approval-name">${a.name}</div>
+                    <div class="approval-author">${icn('user',10)} ${a.author||'Anonim'}</div>
+                </div>
+                <div class="approval-actions">
+                    <button class="approval-btn accept" onclick="approveAddon('${a.id}')" title="Setujui">${icn('check',16)}</button>
+                    <button class="approval-btn reject" onclick="rejectAddon('${a.id}')" title="Tolak">${icn('x',16)}</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    function saveForUser(id) { if (!isLoggedIn()) { alert('Login dulu!'); return; } const a = addons.find(x => x.id === id); if (!a) return; if (savedAddons.find(s => s.name === a.name && s.links[0] === a.links[0])) { alert('Sudah disimpan!'); return; } savedAddons.unshift({ ...a, savedBy: currentUser.username, savedDate: Date.now() }); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); toast('Tersimpan!', 'ok'); switchTab(currentTab); }
     function removeSaved(i) { savedAddons.splice(i,1); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons)); switchTab('my'); }
 
     function downloadAddon(link, name, ev) {
@@ -932,39 +1041,40 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
     function _renderGridActual() {
         grid.innerHTML = '';
         const f = searchInput.value.toLowerCase(), tagF = document.getElementById('tagFilter')?.value || '';
-        let list = [...addons];
+        const isMod = isAdmin() || isCreator();
+        let list = [...addons].filter(isApproved); // publik cuma lihat yang sudah disetujui
         if (currentTab === 'recent') list = list.slice(0,5);
         if (currentTab === 'my') {
             if (!isLoggedIn()) { grid.innerHTML = '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Login dulu.</div>'; return; }
-            if (isAdmin() || isCreator()) grid.innerHTML = '<div style="width:100%;text-align:center;margin-bottom:12px;"><button class="card-btn save" style="width:auto;padding:10px 20px;" onclick="openModal(\'add\')">+ Tambah Add-on</button></div>';
-            list = (isAdmin() || isCreator()) ? addons.filter(a => a.author === currentUser.username) : savedAddons.filter(a => a.savedBy === currentUser.username);
+            const addBtnLabel = isMod ? '+ Tambah Add-on' : '+ Ajukan Add-on';
+            grid.innerHTML = `<div style="width:100%;text-align:center;margin-bottom:12px;"><button class="card-btn save" style="width:auto;padding:10px 20px;" onclick="openModal('add')">${addBtnLabel}</button></div>`;
+            list = isMod ? [...addons].filter(a => a.author === currentUser.username) : savedAddons.filter(a => a.savedBy === currentUser.username);
         }
         if (f) list = list.filter(a => a.name.toLowerCase().includes(f) || (a.desc||'').toLowerCase().includes(f));
         if (tagF) list = list.filter(a => (a.tag||'') === tagF);
         if (!list.length) { grid.innerHTML += '<div class="no-result"><div class="cube" style="margin:0 auto 14px;"><i class="top"></i><i class="left"></i><i class="right"></i></div>Kosong</div>'; return; }
         let cards = '';
         list.forEach((a,i) => {
-            const idx = addons.indexOf(a);
             const links = !a.links || !a.links.length ? '' : a.links.length === 1
                 ? `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${a.links[0]}','${a.name}',event)">${icn('download')} Download</button>`
                 : `<div class="card-dl-row">${a.links.map((l,j) => `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${l}','${a.name}',event)">${icn('download')} ${j+1}</button>`).join('')}</div>`;
-            const saveBtn = (!isAdmin() && !isCreator() && isLoggedIn() && currentTab !== 'my') ? `<button class="card-btn save" onclick="event.stopPropagation();saveForUser(${idx})">${icn('bookmark')} Simpan</button>` : '';
-            const removeBtn = (!isAdmin() && !isCreator() && currentTab === 'my') ? `<button class="card-btn delete" onclick="event.stopPropagation();removeSaved(${i})">Hapus</button>` : '';
-            const adminBtns = (isCreator()) ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon(${idx})">Hapus</button>` : (isAdmin() && currentTab === 'my') ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm(${idx})">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon(${idx})">Hapus</button>` : '';
-            cards += `<div class="card" data-idx="${idx}">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-text"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span><div class="card-desc">${a.desc||''}</div></div><div class="card-actions">${links}${saveBtn}${removeBtn}${adminBtns}<button class="share-btn" data-action="share" data-idx="${idx}">${icn('share',12)} Share</button><button class="share-btn" data-action="copy" data-idx="${idx}">${icn('copy',12)} Copy</button><div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div></div>`;
+            const saveBtn = (!isMod && isLoggedIn() && currentTab !== 'my') ? `<button class="card-btn save" onclick="event.stopPropagation();saveForUser('${a.id}')">${icn('bookmark')} Simpan</button>` : '';
+            const removeBtn = (!isMod && currentTab === 'my') ? `<button class="card-btn delete" onclick="event.stopPropagation();removeSaved(${i})">Hapus</button>` : '';
+            const adminBtns = (isMod && (isCreator() || currentTab === 'my')) ? `<button class="card-btn edit" onclick="event.stopPropagation();openEditForm('${a.id}')">Edit</button><button class="card-btn delete" onclick="event.stopPropagation();deleteAddon('${a.id}')">Hapus</button>` : '';
+            const pendingBadge = isPending(a) ? `<span class="card-tag" style="background:rgba(255,181,69,.15);color:var(--amber);border-color:rgba(255,181,69,.3);">Menunggu Persetujuan</span>` : '';
+            cards += `<div class="card" data-id="${a.id}">${a.image?`<img class="card-img" src="${a.image}" />`:'<div class="card-img"></div>'}<div class="card-body"><div class="card-text"><div class="card-author">${icn('user',11)} ${a.author||'Anonim'}</div><div class="card-title">${a.name}</div><span class="card-tag">${a.tag||'Add-on'}</span>${pendingBadge}<div class="card-desc">${a.desc||''}</div></div><div class="card-actions">${links}${saveBtn}${removeBtn}${adminBtns}<button class="share-btn" data-action="share" data-id="${a.id}">${icn('share',12)} Share</button><button class="share-btn" data-action="copy" data-id="${a.id}">${icn('copy',12)} Copy</button><div class="card-count">${icn('download',11)} ${downloadCounts[a.name] || 0} download</div></div></div></div>`;
         });
         grid.innerHTML += cards;
     if (!grid.dataset.listenerAdded) {
         grid.addEventListener('click', (e) => {
-            const card = e.target.closest('.card[data-idx]');
+            const card = e.target.closest('.card[data-id]');
             if (card && !e.target.closest('button, a')) {
-                openInspect(parseInt(card.dataset.idx, 10));
+                openInspect(card.dataset.id);
             }
             const btn = e.target.closest('.share-btn[data-action]');
             if (btn) {
                 e.stopPropagation();
-                const idx = parseInt(btn.dataset.idx, 10);
-                const a = addons[idx];
+                const a = addons.find(x => x.id === btn.dataset.id);
                 if (!a) return;
                 if (btn.dataset.action === 'share') shareAddon(a);
                 else if (btn.dataset.action === 'copy') copyAddonLink(a);
@@ -973,19 +1083,9 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
         grid.dataset.listenerAdded = '1';
     }
     }
-    function renderGrid() {
-        if (!dbReady) {
-            renderSkeleton();
-            return;
-        }
-        renderSkeleton();
-        setTimeout(() => {
-            _renderGridActual();
-        }, 400);
-    }
 
-    function openInspect(i) {
-        const a = addons[i]; if (!a) return;
+    function openInspect(id) {
+        const a = addons.find(x => x.id === id); if (!a) return;
         document.getElementById('inspectImg').src = a.image || '';
         document.getElementById('inspectAuthor').innerHTML = `${icn('user',11)} ${a.author||'Anonim'}`;
         document.getElementById('inspectTitle').textContent = a.name;
@@ -995,8 +1095,8 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
             ? `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${a.links[0]}','${a.name}',event)">${icn('download')} Download</button>`
             : `<div class="card-dl-row">${a.links.map((l,j) => `<button class="card-btn dl" onclick="event.stopPropagation();downloadAddon('${l}','${a.name}',event)">${icn('download')} ${j+1}</button>`).join('')}</div>`;
         const shareCopy = `<div style="display:flex;gap:8px;margin-top:8px;">
-            <button class="share-btn" data-action="share" data-idx="${addons.indexOf(a)}">${icn('share',12)} Share</button>
-            <button class="share-btn" data-action="copy" data-idx="${addons.indexOf(a)}">${icn('copy',12)} Copy</button>
+            <button class="share-btn" data-action="share" data-id="${a.id}">${icn('share',12)} Share</button>
+            <button class="share-btn" data-action="copy" data-id="${a.id}">${icn('copy',12)} Copy</button>
         </div>`;
         document.getElementById('inspectDownloads').innerHTML = links + shareCopy;
         document.getElementById('inspectModal').classList.add('show');
@@ -1022,7 +1122,12 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
             const sp = localStorage.getItem('panzz_pic_'+(currentUser?.username||'')), pic = sp || 'https://placehold.co/96/1a1d24/39d67e?text=%F0%9F%91%A4';
             let p = `<div class="no-result" style="width:100%;padding:20px 10px;"><div style="margin-bottom:14px;"><input type="text" id="searchUserInput" placeholder="Cari username..." style="width:100%;padding:11px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--panel);color:var(--text);" onkeydown="if(event.key==='Enter')searchUser()" /><button class="card-btn dl" style="margin-top:8px;" onclick="searchUser()">${icn('search')} Cari User</button></div><div id="profileContent"><img src="${pic}" class="profile-pic" id="profilePicPreview" /><h3 style="margin-top:12px;font-size:16px;font-weight:700;color:var(--text);">${currentUser?.username||'Guest'}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${getTitle()}</p>`;
             if (isLoggedIn()) {
-                p += `<p style="margin-top:10px;"><button class="card-btn dl" onclick="openModal('add')">+ Tambah Add-on</button></p>`;
+                const isMod = isCreator() || isAdmin();
+                p += `<p style="margin-top:10px;"><button class="card-btn dl" onclick="openModal('add')">${isMod ? '+ Tambah Add-on' : '+ Ajukan Add-on'}</button></p>`;
+                if (isMod) {
+                    const pendingCount = addons.filter(isPending).length;
+                    p += `<p><button class="card-btn edit" onclick="openApprovalModal()" style="position:relative;">${icn('check')} Persetujuan${pendingCount ? `<span class="pending-badge">${pendingCount}</span>` : ''}</button></p>`;
+                }
                 p += `<p><button class="card-btn edit" onclick="toggleEditProfile()">${icn('pencil')} Edit Profile</button></p>`;
                 p += `<div id="editProfileSection" style="display:none;text-align:left;margin-top:16px;">
                     <div class="profile-block"><div style="display:flex;align-items:center;gap:12px;"><img id="editProfilePicPreview" src="${pic}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;border:2px solid var(--emerald);" /><div><div class="row-title">Foto Profil</div><label style="font-size:11px;color:var(--diamond);cursor:pointer;margin-top:2px;display:inline-block;font-weight:600;">${icn('camera')} Pilih Foto<input type="file" id="profilePicInput" accept="image/*" onchange="updateProfilePic()" style="display:none;" /></label></div></div></div>
@@ -1086,7 +1191,8 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
                 const key = usernameKey(currentUser.username), uid = currentUser.uid, uname = currentUser.username;
                 await db.ref('usernames/' + key).remove();
                 await db.ref('users/' + uid).remove();
-                addons = addons.filter(a => a.author !== uname); await db.ref('addons').set(addons);
+                const ownAddons = addons.filter(a => a.author === uname);
+                await Promise.all(ownAddons.map(a => db.ref('addons/' + a.id).remove().catch(() => {})));
                 savedAddons = savedAddons.filter(a => a.savedBy !== uname); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
                 await auth.currentUser.delete();
                 toast('Akun dihapus!', 'ok');
@@ -1106,7 +1212,7 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
                 const profile = uSnap.exists() ? uSnap.val() : {};
                 const uname = profile.username || q, role = profile.role || 'user';
                 const sp = localStorage.getItem('panzz_pic_' + uname), pic = sp || 'https://placehold.co/96/1a1d24/39d67e?text=%F0%9F%91%A4';
-                const ua = addons.filter(a => a.author === uname), td = ua.reduce((s, a) => s + (a.links || []).length, 0);
+                const ua = addons.filter(a => a.author === uname && isApproved(a)), td = ua.reduce((s, a) => s + (a.links || []).length, 0);
                 let html = `<img src="${pic}" class="profile-pic" /><h3 style="font-size:16px;font-weight:700;">${uname}</h3><p style="color:var(--text2);font-size:12px;margin-top:6px;">${role === 'creator' ? 'Creator' : role === 'admin' ? 'Admin' : 'User'}</p><p style="font-size:12px;color:var(--text2);margin-top:6px;">${icn('box',11)} ${ua.length} add-on &nbsp; ${icn('download',11)} ${td} download</p>`;
                 if (isCreator() && role !== 'creator') html += `<p style="margin-top:10px;"><button class="card-btn delete" onclick="deleteUserAccount('${uid}','${uname}')">${icn('trash')} Hapus Data Akun Ini</button></p>`;
                 document.getElementById('profileContent').innerHTML = html;
@@ -1121,7 +1227,8 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
                 const key = usernameKey(uname);
                 await db.ref('usernames/' + key).remove();
                 await db.ref('users/' + uid).remove();
-                addons = addons.filter(a => a.author !== uname); await db.ref('addons').set(addons);
+                const ownAddons = addons.filter(a => a.author === uname);
+                await Promise.all(ownAddons.map(a => db.ref('addons/' + a.id).remove().catch(() => {})));
                 savedAddons = savedAddons.filter(a => a.savedBy !== uname); localStorage.setItem('panzz_saved', JSON.stringify(savedAddons));
                 toast('Data akun ' + uname + ' dihapus!', 'ok'); document.getElementById('profileContent').innerHTML = '<p>Data akun telah dihapus.</p>';
             })(), 15000);
@@ -1146,32 +1253,11 @@ function searchAddons() { const q = searchInput.value.trim(); if (q) addSearchHi
         const btn = e.target.closest('.share-btn[data-action]');
         if (btn) {
             e.stopPropagation();
-            const idx = parseInt(btn.dataset.idx, 10);
-            const a = addons[idx];
+            const a = addons.find(x => x.id === btn.dataset.id);
             if (!a) return;
             if (btn.dataset.action === 'share') shareAddon(a);
             else if (btn.dataset.action === 'copy') copyAddonLink(a);
         }
-      // Bikin fungsi buat nampilin Pop-up Google bawaan
-function loginDenganGoogle() {
-  // Provider Google dari Firebase
-  var provider = new firebase.auth.GoogleAuthProvider();
-
-  // Ini yang bakal manggil pop-up asli Google di tengah layar
-  firebase.auth().signInWithPopup(provider)
-    .then((result) => {
-      var user = result.user;
-      console.log("Berhasil login, halo " + user.displayName);
-      
-      // Tutup modal HTML lu kalau udah berhasil milih akun
-      closeModal('signin'); 
-      closeModal('signup');
-    })
-    .catch((error) => {
-      console.error("Gagal login Google: ", error.message);
-      alert("Gagal login: " + error.message);
-    });
-}
     });
 </script>
 </body>
