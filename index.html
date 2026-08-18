@@ -770,7 +770,7 @@ crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
         } else if (type === 'add') {
             editIndex = -1;
             document.getElementById('addModalTitle').textContent = 'Tambah Add-on';
-            document.getElementById('addBtn').textContent = 'Tambah';
+            const addBtn = document.getElementById('addBtn'); addBtn.textContent = 'Tambah'; addBtn.disabled = false;
             document.getElementById('addName').value = '';
             document.getElementById('addImage').value = '';
             document.getElementById('addLink1').value = '';
@@ -874,15 +874,36 @@ crown: `<path d="M4 8l3 3 5-5 5 5 3-3v9H4z"/>`,
         const link1 = document.getElementById('addLink1').value.trim(), link2 = document.getElementById('addLink2').value.trim();
         const desc = document.getElementById('addDesc').value.trim(), tag = document.getElementById('addTag').value;
         if (!name || !link1) { alert('Nama & Link wajib!'); return; }
+        const btn = document.getElementById('addBtn');
+        const originalBtnText = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
         function simpan(img) {
             const links = [link1]; if (link2) links.push(link2);
             const entry = { name, image: img || '', links, desc, tag, author: editIndex >= 0 ? addons[editIndex].author : (currentUser?.username || 'anon'), date: Date.now() };
             if (editIndex >= 0) addons[editIndex] = entry; else addons.unshift(entry);
-            if (dbReady) db.ref('addons').set(addons);
+            if (dbReady) {
+                db.ref('addons').set(addons).catch(err => {
+                    console.error('Gagal simpan addon ke server:', err);
+                    toast('Gagal simpan ke server: ' + (err && (err.message || err.code) || 'coba lagi'), 'err');
+                });
+            }
             closeModal('addModal'); switchTab('my'); addHistory(editIndex >= 0 ? 'Edit' : 'Tambah', name); toast(editIndex >= 0 ? 'Add-on diperbarui!' : 'Add-on ditambahkan!', 'ok'); editIndex = -1;
+            if (btn) { btn.disabled = false; btn.textContent = originalBtnText; }
         }
-        if (imgFile) { const r = new FileReader(); r.onload = e => simpan(e.target.result); r.readAsDataURL(imgFile); }
-        else simpan(editIndex >= 0 ? addons[editIndex].image : '');
+        if (imgFile) {
+            const r = new FileReader();
+            let done = false;
+            // pengaman: kalau baca file macet (misalnya file gambar dari sumber yang udah gak valid
+            // lagi), jangan biarin nyangkut selamanya -- lanjut simpan tanpa foto setelah 8 detik.
+            const timeoutId = setTimeout(() => {
+                if (done) return; done = true;
+                toast('Gagal baca foto (coba pilih ulang), add-on disimpan tanpa foto dulu', 'err');
+                simpan(editIndex >= 0 ? addons[editIndex].image : '');
+            }, 8000);
+            r.onload = e => { if (done) return; done = true; clearTimeout(timeoutId); simpan(e.target.result); };
+            r.onerror = () => { if (done) return; done = true; clearTimeout(timeoutId); toast('Gagal baca foto, coba pilih ulang', 'err'); if (btn) { btn.disabled = false; btn.textContent = originalBtnText; } };
+            r.readAsDataURL(imgFile);
+        } else simpan(editIndex >= 0 ? addons[editIndex].image : '');
     }
     function openEditForm(i) { if (!isCreator()) return; const a = addons[i]; editIndex = i; document.getElementById('addModalTitle').textContent = 'Edit Add-on'; document.getElementById('addBtn').textContent = 'Simpan'; document.getElementById('addName').value = a.name; document.getElementById('addLink1').value = (a.links&&a.links[0])||''; document.getElementById('addLink2').value = (a.links&&a.links[1])||''; document.getElementById('addDesc').value = a.desc||''; document.getElementById('addTag').value = a.tag||''; document.getElementById('addModal').classList.add('show'); }
     function deleteAddon(i) { if (!isCreator()) return; if (!confirm('Hapus?')) return; addons.splice(i,1); if (dbReady) db.ref('addons').set(addons); switchTab('my'); toast('Add-on dihapus', 'ok'); }
